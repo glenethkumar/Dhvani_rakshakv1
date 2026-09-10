@@ -242,7 +242,7 @@ public class CallDetectionService extends Service {
                 if (absS > maxAmp) maxAmp = absS;
             }
 
-            if (maxAmp < 3) {
+            if (maxAmp == 0) {
                 // Pure digital zero silence / no microphone signal
                 floatingOverlay.updateRisk(
                     0.0,

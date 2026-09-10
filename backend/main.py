@@ -30,6 +30,7 @@ from core.dark_web_monitor import DarkWebThreatMonitor
 from core.blockchain_certifier import BlockchainCertifier
 from core.behavioral_biometrics import BehavioralBiometricsEngine
 from core.content_intent_analyzer import ContentIntentAnalyzer
+from core.call_store import CallStoreManager
 from telecom.telecom_gateway import TelecomGateway
 from telecom.codecs import encode_pcm_to_mulaw, apply_telephony_channel_degradation
 
@@ -59,6 +60,7 @@ enricher = ContextEnricher()
 privacy = PrivacyComplianceManager()
 alerts = AlertService()
 intent_analyzer = ContentIntentAnalyzer()
+call_store = CallStoreManager()
 
 # Instantiate 5 Judge-Winning Modules + Telecom Gateway
 xai = ExplainabilityEngine()
@@ -67,17 +69,6 @@ darkweb = DarkWebThreatMonitor()
 blockchain = BlockchainCertifier()
 behavioral = BehavioralBiometricsEngine()
 telecom = TelecomGateway()
-
-# Global executive analytics counters
-analytics_counter = {
-    "total_calls_analyzed": 1420,
-    "clones_detected_blocked": 118,
-    "warnings_issued": 84,
-    "total_fraud_prevented_inr": 24500000,  # ₹2.45 Crores
-    "avg_latency_ms": 142.5,
-    "true_positive_rate": 96.4,
-    "false_positive_rate": 1.8
-}
 
 class ConfigUpdateRequest(BaseModel):
     acoustic_weight: float | None = None
@@ -104,7 +95,11 @@ def health_check():
 
 @app.get("/api/v1/analytics")
 def get_analytics():
-    return analytics_counter
+    return call_store.get_analytics()
+
+@app.get("/api/v1/real-calls")
+def get_real_call_history(limit: int = 20):
+    return call_store.get_recent_calls(limit)
 
 @app.get("/api/v1/ml-models")
 def get_ml_models_telemetry():
@@ -236,14 +231,10 @@ async def analyze_audio_call(
     # Processing Latency Benchmark
     latency_ms = round((time.time() - start_time) * 1000.0, 2)
 
-    # Update analytics
-    analytics_counter["total_calls_analyzed"] += 1
-    if risk_results["alert_level"] == "RED":
-        analytics_counter["clones_detected_blocked"] += 1
-        amount = transaction_context.get("amount_inr", 0)
-        analytics_counter["total_fraud_prevented_inr"] += amount
-    elif risk_results["alert_level"] == "YELLOW":
-        analytics_counter["warnings_issued"] += 1
+    # Save real call telemetry & analytics to persistent database
+    caller_id = caller_metadata.get("caller_id", f"Call #{session_id[-4:]}")
+    amount = transaction_context.get("amount_inr", 0.0)
+    call_store.record_call(session_id, caller_id, risk_results, latency_ms, amount)
 
     # 6. Mitigation Trigger
     mitigation_workflow = None
