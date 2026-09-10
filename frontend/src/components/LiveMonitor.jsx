@@ -302,7 +302,7 @@ export default function LiveMonitor() {
               </span>
             </div>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              <strong>What it does:</strong> Monitors live phone call audio streams in real time. It analyzes pitch, tone, and sound quality to catch fake AI voices in under 0.14 seconds.
+              <strong>What it does:</strong> Checks live audio streams in real time. It analyzes pitch and voice quality to spot fake AI voices instantly.
             </p>
           </div>
         </div>

@@ -19,29 +19,29 @@ export default function App() {
 
   const categories = [
     {
-      name: '🛡️ Real-Time Voice Protection',
+      name: '🛡️ Voice Call Protection',
       items: [
-        { id: 'telecom', label: 'Phone Line Interceptor', icon: Radio, simpleDesc: 'Scans live phone call audio streams and automatically hangs up on fake AI scam voices.' },
-        { id: 'monitor', label: 'Live Voice Scanner', icon: Waves, simpleDesc: 'Checks incoming microphone calls in real time and flags synthetic voices instantly.' },
-        { id: 'simulator', label: 'Voice Fake Simulator', icon: PhoneCall, simpleDesc: 'Test how fake voices and AI clone attacks are detected and blocked.' },
-        { id: 'dashboard', label: 'Security Overview', icon: Cpu, simpleDesc: 'Clear summary of scanned calls, blocked scam attempts, and money saved.' }
+        { id: 'telecom', label: 'Phone Line Interceptor', icon: Radio, simpleDesc: 'Auto-scans phone calls and blocks fake AI voices.' },
+        { id: 'monitor', label: 'Live Voice Scanner', icon: Waves, simpleDesc: 'Checks live microphone audio and alerts you if a voice is fake.' },
+        { id: 'simulator', label: 'Voice Fake Simulator', icon: PhoneCall, simpleDesc: 'Test how fake voices and scam calls are detected.' },
+        { id: 'dashboard', label: 'Security Overview', icon: Cpu, simpleDesc: 'See total calls scanned, blocked scam attempts, and money saved.' }
       ]
     },
     {
-      name: '🔬 Deep Threat Intelligence',
+      name: '🔍 Voice Analysis & Safety',
       items: [
-        { id: 'xai', label: 'Why Is It Fake?', icon: Eye, simpleDesc: 'Clear, simple explanations showing exactly why a voice was flagged as fake.' },
-        { id: 'gov', label: 'VIP Protection', icon: Award, simpleDesc: 'High-security mode for government leaders, executives, and bank accounts.' },
-        { id: 'blockchain', label: 'Digital Voice Pass', icon: Database, simpleDesc: 'Creates tamper-proof digital voice certificates for court & legal proof.' },
-        { id: 'behavioral', label: 'Behavior Check', icon: HeartPulse, simpleDesc: 'Monitors caller stress, unusual midnight calls, and suspicious activity.' }
+        { id: 'xai', label: 'Why Is It Fake?', icon: Eye, simpleDesc: 'Simple explanations showing why a call was marked fake.' },
+        { id: 'gov', label: 'VIP Protection', icon: Award, simpleDesc: 'Extra safety mode for leaders, executives, and bank accounts.' },
+        { id: 'blockchain', label: 'Digital Voice Pass', icon: Database, simpleDesc: 'Creates secure voice certificates for official proof.' },
+        { id: 'behavioral', label: 'Behavior Check', icon: HeartPulse, simpleDesc: 'Checks caller stress, odd call times, and unusual habits.' }
       ]
     },
     {
-      name: '⚙️ System Administration',
+      name: '⚙️ Settings & Privacy',
       items: [
-        { id: 'enrollment', label: 'Register Voice', icon: ShieldCheck, simpleDesc: 'Safely enrolls trusted voices without saving raw audio.' },
-        { id: 'policy', label: 'System Settings', icon: Sliders, simpleDesc: 'Adjust sensitivity, risk score limits, and automatic blocking rules.' },
-        { id: 'audit', label: 'Safety Reports', icon: FileText, simpleDesc: 'Official privacy logs proving 100% data safety and zero audio storage.' }
+        { id: 'enrollment', label: 'Register Voice', icon: ShieldCheck, simpleDesc: 'Safely save your real voice profile without storing audio.' },
+        { id: 'policy', label: 'System Settings', icon: Sliders, simpleDesc: 'Change risk sensitivity and auto-block rules.' },
+        { id: 'audit', label: 'Safety Reports', icon: FileText, simpleDesc: 'Clear privacy reports proving 100% data safety.' }
       ]
     }
   ];
