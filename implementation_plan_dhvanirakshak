@@ -1,0 +1,129 @@
+# Implementation Plan - Dhvani Rakshak (AI-Powered Real-Time Voice Cloning Detection & Prevention System)
+
+Dhvani Rakshak is an enterprise-grade, real-time voice authentication and anti-spoofing platform designed to protect financial transactions, executive calls, and contact centers from AI voice cloning attacks with sub-2-second latency.
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Key Architectural Decisions & Zero Audio Storage Policy**
+> - **Zero Raw Audio Retention**: Audio payload is processed strictly in volatile RAM buffers. Only 192-dimensional vector embeddings and acoustic feature fingerprints are encrypted and persisted.
+> - **Multilingual Dialect Tuning**: Dynamic prosodic baseline adjustments for 8 major Indian languages (Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati) + Indian English variants.
+> - **Tri-Layer Dynamic Ensemble Scoring**: Acoustic/Spectral (40%), Prosody/Behavioral (30%), Speaker Consistency (30%).
+
+## Open Questions
+
+> [!NOTE]
+> 1. **Default Microservice Port Setup**: The backend server runs FastAPI on port `8000` with WebSocket support for real-time audio chunk streaming. Is port `8000` preferred for local testing?
+> 2. **Synthetic Sample Generation**: Pre-built synthetic voice test benchmarks and real-time WebRTC/WebSocket microphone streaming test suites will be included out-of-the-box.
+
+---
+
+## Proposed Changes
+
+### 1. Project Architecture & Backend Engine (`backend/`)
+
+#### [NEW] [backend/main.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/main.py)
+- FastAPI core application server.
+- Exposes REST endpoints (`/api/v1/health`, `/api/v1/analyze`, `/api/v1/enroll`, `/api/v1/config`, `/api/v1/audit-logs`) and WebSocket endpoint (`/ws/live-stream`).
+
+#### [NEW] [backend/core/audio_ingestion.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/audio_ingestion.py)
+- WebSockets & WAV/PCM audio stream ingestion, 16kHz mono normalization, noise filtering, and sliding window frame buffering (20-30ms frames).
+
+#### [NEW] [backend/core/acoustic_analyzer.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/acoustic_analyzer.py)
+- MFCC (20-dim + delta/delta-delta) extraction.
+- Spectral centroid, flux, rolloff, flatness, and formant frequencies (F1-F3).
+- High-frequency phase discontinuity and TTS artifact signatures (Google TTS, OpenAI Voice, ElevenLabs, XTTS, Bark).
+- Splicing and spectral boundary discontinuity detection.
+
+#### [NEW] [backend/core/prosody_analyzer.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/prosody_analyzer.py)
+- Pitch tracking ($F_0$ contour via YIN algorithm).
+- Jitter (pitch perturbation) and Shimmer (amplitude perturbation) calculation.
+- Micro-rhythm, artificial pause cadence, and synthetic breath omission detection.
+- Phrase intonation consistency and emotional stress pattern scoring.
+
+#### [NEW] [backend/core/speaker_verifier.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/speaker_verifier.py)
+- 192-dimensional speaker embedding generator (ResNet/ECAPA-TDNN based feature extraction).
+- Cosine similarity matching against enrolled contact database.
+- Mid-call speaker identity drift detection.
+
+#### [NEW] [backend/core/multilingual_engine.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/multilingual_engine.py)
+- Language-agnostic acoustic features with Indian language prosodic normalization (Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Bengali, Gujarati, Indian English).
+
+#### [NEW] [backend/core/risk_scorer.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/risk_scorer.py)
+- Dynamic weighted ensemble model: 40% Acoustic + 30% Prosody + 30% Speaker Consistency.
+- Dynamic threshold engine (RED >=90, YELLOW 70-89, GREEN <70).
+
+#### [NEW] [backend/core/context_enricher.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/context_enricher.py)
+- Geolocation anomaly detection, off-hour transaction flags, transaction amount threat multipliers, historical fraud graph score adjustment.
+
+#### [NEW] [backend/core/privacy_compliance.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/privacy_compliance.py)
+- Zero raw audio retention enforcer, feature fingerprinting, AES-256 encrypted vector storage, PII anonymization, audit trail generator.
+
+#### [NEW] [backend/core/alert_service.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/backend/core/alert_service.py)
+- Real-time WebSockets push alerts, SMS/Email trigger dispatcher, multi-option mitigation workflows (Callback, OTP, Liveness Challenge, Supervisor Escalation).
+
+---
+
+### 2. Frontend Admin Dashboard & Interactive Call Simulator (`frontend/`)
+
+#### [NEW] [frontend/package.json](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/package.json)
+- Vite + React + Lucide Icons + Chart.js / Tailwind CSS / Canvas UI setup.
+
+#### [NEW] [frontend/src/App.jsx](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/src/App.jsx)
+- Navigation bar with Live Monitor, Call Simulator, Executive Dashboard, Voice Enrollment, Policy Configuration, and Compliance Audit views.
+
+#### [NEW] [frontend/src/components/LiveMonitor.jsx](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/src/components/LiveMonitor.jsx)
+- Real-time stream monitor, dynamic risk gauge (0-100), active audio visualizer (oscilloscope & spectrogram), alert feed, call metadata.
+
+#### [NEW] [frontend/src/components/CallSimulator.jsx](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/src/components/CallSimulator.jsx)
+- Test suite with live microphone streaming via WebAudio API + preset human vs AI cloned audio benchmarks (ElevenLabs, OpenAI Voice, Spliced Attacks, Regional Indian Dialects).
+- Simulated high-value banking transfer trigger with active fraud blocking popup & OTP/Callback mitigation flow.
+
+#### [NEW] [frontend/src/components/ExecutiveDashboard.jsx](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/src/components/ExecutiveDashboard.jsx)
+- Enterprise statistics, fraud prevention savings metrics, true positive / false positive breakdown charts, attack vector distribution.
+
+#### [NEW] [frontend/src/components/VoiceEnrollment.jsx](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/src/components/VoiceEnrollment.jsx)
+- 5-second audio enrollment studio for CXOs & trusted contacts with zero raw audio badge & instant vector embedding extraction.
+
+#### [NEW] [frontend/src/components/PolicyConfig.jsx](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/src/components/PolicyConfig.jsx)
+- Sliders for risk weights, transaction thresholds, and regional dialect sensitivities.
+
+#### [NEW] [frontend/src/components/ComplianceAudit.jsx](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/frontend/src/components/ComplianceAudit.jsx)
+- Audit log explorer, PII anonymization status, downloadable compliance reports (GDPR / RBI Guidelines).
+
+---
+
+### 3. Developer SDKs & Integration Libraries (`sdks/`)
+
+#### [NEW] [sdks/python/dhvani_sdk.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/sdks/python/dhvani_sdk.py)
+- Python server-side client library for async audio verification & streaming.
+
+#### [NEW] [sdks/javascript/dhvani-web-sdk.js](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/sdks/javascript/dhvani-web-sdk.js)
+- Browser/WebRTC JavaScript SDK for real-time call interception in web applications.
+
+#### [NEW] [examples/banking_integration_mock.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/examples/banking_integration_mock.py)
+- Sample banking core integration intercepting high-value wire transfers based on Dhvani Rakshak risk scores.
+
+---
+
+### 4. Synthetic Test Dataset & Benchmark Suite (`tests/`)
+
+#### [NEW] [tests/generate_test_audio.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/tests/generate_test_audio.py)
+- Generates synthetic audio samples (Genuine human speech vs AI-clones with phase artifacts, robotic jitter, pitch flattening) for automated testing.
+
+#### [NEW] [tests/test_detection_engine.py](file:///c:/Users/golag/New%20folder/Dhvani%20Rakshak/tests/test_detection_engine.py)
+- Pytest suite testing sub-2-second latency, feature extraction accuracy, zero raw audio verification, and risk scoring accuracy.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+- Run backend pytest suite: `pytest tests/test_detection_engine.py`
+- Execute audio feature extraction and latency benchmarks.
+
+### Manual Verification
+- Test Live Microphone streaming on the React Frontend dashboard over WebSockets.
+- Verify simulated call attacks (Human vs OpenAI Voice vs ElevenLabs vs Spliced audio).
+- Test Banking wire transfer fraud intercept modal & OTP/Callback mitigation workflows.
+- Verify Zero Raw Audio retention policy in memory logs and audit report download.

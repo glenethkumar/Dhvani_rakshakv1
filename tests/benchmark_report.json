@@ -1,0 +1,114 @@
+{
+  "timestamp": 1789009621.802903,
+  "summary": {
+    "total_samples": 40,
+    "accuracy": 100.0,
+    "tpr_recall": 100.0,
+    "fpr": 0.0,
+    "precision": 100.0,
+    "f1_score": 100.0,
+    "estimated_eer": 0.0,
+    "latency": {
+      "mean_ms": 154.72,
+      "p95_ms": 228.48,
+      "min_ms": 109.19,
+      "max_ms": 238.27
+    },
+    "confusion_matrix": {
+      "true_positives": 20,
+      "true_negatives": 20,
+      "false_positives": 0,
+      "false_negatives": 0
+    }
+  },
+  "sample_evaluations": [
+    {
+      "id": "GENUINE_01",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 22.6,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.0998,
+      "speaker_similarity": 0.9935,
+      "latency_ms": 112.13
+    },
+    {
+      "id": "GENUINE_02",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 22.5,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.0998,
+      "speaker_similarity": 0.9966,
+      "latency_ms": 145.49
+    },
+    {
+      "id": "GENUINE_03",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 23.4,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.1345,
+      "speaker_similarity": 0.9975,
+      "latency_ms": 225.86
+    },
+    {
+      "id": "GENUINE_04",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 22.6,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.0998,
+      "speaker_similarity": 0.9932,
+      "latency_ms": 109.19
+    },
+    {
+      "id": "GENUINE_05",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 22.6,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.0998,
+      "speaker_similarity": 0.9955,
+      "latency_ms": 132.88
+    },
+    {
+      "id": "GENUINE_06",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 23.2,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.1263,
+      "speaker_similarity": 0.997,
+      "latency_ms": 159.5
+    },
+    {
+      "id": "GENUINE_07",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 22.6,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.0998,
+      "speaker_similarity": 0.9934,
+      "latency_ms": 112.36
+    },
+    {
+      "id": "GENUINE_08",
+      "type": "BONA_FIDE_HUMAN",
+      "ground_truth_spoof": false,
+      "predicted_spoof": false,
+      "risk_score": 22.5,
+      "alert_level": "GREEN",
+      "neural_deepfake_prob": 0.0998,
+      "speaker_similarity": 0.9964,
+      "latency_ms": 127.23
+    }
+  ]
+}

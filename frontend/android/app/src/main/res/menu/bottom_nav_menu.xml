@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="Home" />
+    <item
+        android:id="@+id/nav_record"
+        android:icon="@drawable/ic_mic"
+        android:title="Audio Check" />
+    <item
+        android:id="@+id/nav_result"
+        android:icon="@drawable/ic_result"
+        android:title="Voice Result" />
+    <item
+        android:id="@+id/nav_verify"
+        android:icon="@drawable/ic_verify"
+        android:title="Security Check" />
+</menu>

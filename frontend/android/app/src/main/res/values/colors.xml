@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Primary Colors -->
+    <color name="colorPrimary">#0284C7</color>
+    <color name="colorPrimaryDark">#0F172A</color>
+    <color name="colorAccent">#38BDF8</color>
+    <color name="windowBackground">#0F172A</color>
+    
+    <!-- Material 3 Surface & Backgrounds -->
+    <color name="surface_dark">#1E293B</color>
+    <color name="surface_card">#334155</color>
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#94A3B8</color>
+
+    <!-- Dual Indicator Risk Badge Colors (Colorblind Accessible + Text Required) -->
+    <color name="risk_low_bg">#16A34A</color>
+    <color name="risk_low_text">#FFFFFF</color>
+    
+    <color name="risk_medium_bg">#D97706</color>
+    <color name="risk_medium_text">#FFFFFF</color>
+    
+    <color name="risk_high_bg">#DC2626</color>
+    <color name="risk_high_text">#FFFFFF</color>
+
+    <!-- UI Action Button Colors -->
+    <color name="button_record_bg">#EF4444</color>
+    <color name="button_action_blue">#0284C7</color>
+</resources>
