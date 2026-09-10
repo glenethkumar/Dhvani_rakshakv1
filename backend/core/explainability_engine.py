@@ -11,7 +11,6 @@ class ExplainabilityEngine:
         """
         reasons = []
         key_factors = []
-        confidence = "HIGH"
 
         ac_score = acoustic_res.get("acoustic_anomaly_score", 0.0)
         pr_score = prosody_res.get("calibrated_prosody_score", 0.0)
@@ -20,7 +19,6 @@ class ExplainabilityEngine:
 
         # 1. Acoustic Features Explanation
         spec_feats = acoustic_res.get("spectral_features", {})
-        high_freq_ratio = spec_feats.get("high_freq_energy_ratio", 0.05)
         phase_var = spec_feats.get("phase_smoothness_variance", 3.0)
         tts_sigs = acoustic_res.get("tts_signatures", {})
 
@@ -54,6 +52,13 @@ class ExplainabilityEngine:
             if sp_sim < 0.60:
                 reasons.append(f"Speaker Vector Mismatch: Cosine distance from enrolled VIP profile is high (Similarity: {sp_sim*100:.1f}%).")
                 key_factors.append({"feature": "192-dim Speaker Embedding Distance", "impact": "CRITICAL", "value": f"{(1-sp_sim):.3f} Cosine Dist"})
+
+        # 4. Keyword & Context Threat Factors
+        flagged_factors = risk_res.get("flagged_context_risk_factors", [])
+        for factor in flagged_factors:
+            if factor not in reasons:
+                reasons.append(f"Threat Factor: {factor}")
+                key_factors.append({"feature": "Fraud Keyword / Context Threat", "impact": "CRITICAL", "value": factor})
 
         if not reasons:
             reasons.append("All acoustic, prosodic, and speaker embedding checks passed within normal human baseline ranges.")
