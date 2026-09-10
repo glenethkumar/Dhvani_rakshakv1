@@ -12,6 +12,7 @@ public class CallReceiver extends BroadcastReceiver {
     private static String currentCallerNumber = "";
 
     @Override
+    @SuppressWarnings("deprecation")
     public void onReceive(Context context, Intent intent) {
         if (intent == null || intent.getAction() == null) return;
 
