@@ -3,7 +3,7 @@ import { Mic, MicOff, Play, AlertTriangle, CheckCircle2, ShieldAlert, PhoneIncom
 import { API_BASE_URL, encodeWAV } from '../utils/audioEncoder';
 
 export default function CallSimulator() {
-  const [selectedPreset, setSelectedPreset] = useState("elevenlabs");
+  const [selectedPreset, setSelectedPreset] = useState("scam_ai");
   const [selectedLang, setSelectedLang] = useState("en-IN");
   const [transferAmount, setTransferAmount] = useState(1500000); // ₹15 Lakhs
   const [mode, setMode] = useState("preset"); // "preset" | "mic" | "upload"
@@ -11,6 +11,12 @@ export default function CallSimulator() {
   const [recordedAudioBlob, setRecordedAudioBlob] = useState(null);
   const [audioFile, setAudioFile] = useState(null);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [mitigationModal, setMitigationModal] = useState(null);
+  const [otpInput, setOtpInput] = useState("");
+  const [otpMessage, setOtpMessage] = useState(null);
 
   const audioContextRef = useRef(null);
   const timerRef = useRef(null);
@@ -144,12 +150,12 @@ export default function CallSimulator() {
     try {
       if (mode === "preset") {
         const scenarioMap = {
-          elevenlabs: "elevenlabs_clone",
-          openai: "openai_voice",
+          scam_ai: "elevenlabs_clone",
+          helpful_ai: "openai_voice",
           spliced: "spliced_attack",
           genuine: "genuine_ceo"
         };
-        const p = presets[selectedPreset];
+        const p = presets[selectedPreset] || presets.scam_ai;
 
         try {
           const res = await fetch(`${API_BASE_URL}/api/v1/telecom/simulate-call`, {
@@ -166,37 +172,37 @@ export default function CallSimulator() {
 
           if (res.ok) {
             const data = await res.json();
-            const chunk = data.chunk_evaluation;
-            setAnalyzing(false);
+            const chunk = data.chunk_evaluation || {};
+            const alertLvl = chunk.alert_level || p.level;
             const result = {
-              session_id: data.session.call_sid,
-              latency_ms: chunk.latency_ms,
-              input_source: `Telecom Line: ${p.name} (G.711u / ${data.session.carrier})`,
+              session_id: data.session ? data.session.call_sid : `SESS_${Math.random().toString(16).substring(2, 10).toUpperCase()}`,
+              latency_ms: chunk.latency_ms || 142.0,
+              input_source: `Telecom Line: ${p.name} (G.711u / ${data.session ? data.session.carrier : 'Airtel'})`,
               risk_assessment: {
-                risk_score: chunk.risk_score,
-                alert_level: chunk.alert_level,
-                recommendation: chunk.alert_level === 'RED' ? 'BLOCK_TRANSACTION_AND_ESCALATE' : chunk.alert_level === 'YELLOW' ? 'REQUIRE_SECONDARY_VERIFICATION' : 'ALLOW',
-                user_message: chunk.alert_level === 'RED' ? 'HIGH RISK: AI Voice Clone Attack Blocked via Telecom SIP BYE!' : chunk.alert_level === 'YELLOW' ? 'WARNING: Suspicious voice characteristics detected. Deflected to fraud desk.' : 'AUTHENTIC REAL HUMAN VOICE: Voice identity verified over telecom line.',
+                risk_score: chunk.risk_score !== undefined ? chunk.risk_score : p.risk,
+                alert_level: alertLvl,
+                recommendation: alertLvl === 'RED' ? 'BLOCK_TRANSACTION_AND_ESCALATE' : alertLvl === 'YELLOW' ? 'REQUIRE_SECONDARY_VERIFICATION' : 'ALLOW',
+                user_message: alertLvl === 'RED' ? 'HIGH RISK: AI Voice Clone Attack Blocked via Telecom SIP BYE!' : alertLvl === 'YELLOW' ? 'WARNING: Suspicious voice characteristics detected. Deflected to fraud desk.' : 'AUTHENTIC REAL HUMAN VOICE: Voice identity verified over telecom line.',
                 flagged_context_risk_factors: transferAmount >= 1000000 ? ["HIGH_VALUE_TRANSACTION (> ₹10L)", "STIR/SHAKEN_ATTESTATION_VERIFIED", "PSTN_CARRIER_VOICE_STREAM"] : ["STIR/SHAKEN_ATTESTATION_VERIFIED"]
               },
               acoustic_analysis: {
-                acoustic_anomaly_score: Math.round((chunk.neural_deepfake_prob || 0.1) * 100) / 100,
-                mfcc_variance: chunk.alert_level === 'RED' ? 4.2 : 14.8,
+                acoustic_anomaly_score: Math.round((chunk.neural_deepfake_prob || p.ac) * 100) / 100,
+                mfcc_variance: alertLvl === 'RED' ? 4.2 : 14.8,
                 splicing_discontinuity: selectedPreset === 'spliced' ? 5.8 : 0.4
               },
               prosody_analysis: {
-                calibrated_prosody_score: chunk.alert_level === 'RED' ? 0.84 : 0.32,
-                jitter_percent: chunk.alert_level === 'RED' ? 0.04 : 0.42,
-                std_f0_hz: chunk.alert_level === 'RED' ? 2.1 : 24.5
+                calibrated_prosody_score: alertLvl === 'RED' ? 0.84 : 0.32,
+                jitter_percent: alertLvl === 'RED' ? 0.04 : 0.42,
+                std_f0_hz: alertLvl === 'RED' ? 2.1 : 24.5
               },
               speaker_verification: {
-                speaker_anomaly_score: Math.round((1.0 - (chunk.speaker_similarity || 0.5)) * 100) / 100,
-                speaker_similarity: Math.round((chunk.speaker_similarity || 0.5) * 100) / 100
+                speaker_anomaly_score: Math.round((1.0 - (chunk.speaker_similarity || (1 - p.sp))) * 100) / 100,
+                speaker_similarity: Math.round((chunk.speaker_similarity || (1 - p.sp)) * 100) / 100
               }
             };
             setAnalysisResult(result);
-            if (chunk.alert_level === 'RED' || chunk.alert_level === 'YELLOW') {
-              setMitigationModal({ sessionId: result.session_id, alertLevel: chunk.alert_level, otp: "482910" });
+            if (alertLvl === 'RED' || alertLvl === 'YELLOW') {
+              setMitigationModal({ sessionId: result.session_id, alertLevel: alertLvl, otp: "482910" });
             }
             return;
           }
@@ -205,41 +211,37 @@ export default function CallSimulator() {
         }
 
         // Fallback simulation if offline
-        setTimeout(() => {
-          setAnalyzing(false);
-          const isHelpfulAI = p.intent_type === 'HELPFUL_ASSISTANT';
-          const isHarmfulAI = p.intent_type === 'HARMFUL_SCAM';
-          
-          const result = {
-            session_id: `SESS_${Math.random().toString(16).substring(2, 10).toUpperCase()}`,
-            latency_ms: 142.8,
-            input_source: `Preset Scenario: ${p.name}`,
-            risk_assessment: {
-              risk_score: p.risk,
-              alert_level: p.level,
-              recommendation: p.level === 'RED' ? 'BLOCK_TRANSACTION_AND_ESCALATE' : 'ALLOW',
-              user_message: isHelpfulAI 
-                ? '✅ HELPFUL AI ASSISTANT DETECTED: Spoken content is helpful (Customer / Flight Reminder). Call allowed!'
-                : isHarmfulAI 
-                ? '🚨 HARMFUL SCAM AI VOICE DETECTED: Phishing / OTP Fraud Intent Detected! Call blocked and intercepted.'
-                : 'AUTHENTIC REAL HUMAN VOICE: Natural pitch & vocal tract formants verified.',
-              flagged_context_risk_factors: isHarmfulAI ? ["HARMFUL_SCAM_INTENT_DETECTED", "OTP_PHISHING_PATTERN"] : isHelpfulAI ? ["HELPFUL_SERVICE_ASSISTANT"] : []
-            },
-            acoustic_analysis: { acoustic_anomaly_score: p.ac, mfcc_variance: p.level === 'RED' ? 4.2 : 14.8, splicing_discontinuity: selectedPreset === 'spliced' ? 5.8 : 0.4 },
-            prosody_analysis: { calibrated_prosody_score: p.pr, jitter_percent: p.level === 'RED' ? 0.04 : 0.42, std_f0_hz: p.level === 'RED' ? 2.1 : 24.5 },
-            speaker_verification: { speaker_anomaly_score: p.sp, speaker_similarity: p.level === 'RED' ? 0.22 : 0.92 }
-          };
-          setAnalysisResult(result);
-          if (p.level === 'RED' || p.level === 'YELLOW') {
-            setMitigationModal({ sessionId: result.session_id, alertLevel: p.level, otp: "482910" });
-          }
-        }, 600);
+        const isHelpfulAI = p.intent_type === 'HELPFUL_ASSISTANT';
+        const isHarmfulAI = p.intent_type === 'HARMFUL_SCAM';
+        
+        const result = {
+          session_id: `SESS_${Math.random().toString(16).substring(2, 10).toUpperCase()}`,
+          latency_ms: 142.8,
+          input_source: `Preset Scenario: ${p.name}`,
+          risk_assessment: {
+            risk_score: p.risk,
+            alert_level: p.level,
+            recommendation: p.level === 'RED' ? 'BLOCK_TRANSACTION_AND_ESCALATE' : 'ALLOW',
+            user_message: isHelpfulAI 
+              ? '✅ HELPFUL AI ASSISTANT DETECTED: Spoken content is helpful (Customer / Flight Reminder). Call allowed!'
+              : isHarmfulAI 
+              ? '🚨 HARMFUL SCAM AI VOICE DETECTED: Phishing / OTP Fraud Intent Detected! Call blocked and intercepted.'
+              : 'AUTHENTIC REAL HUMAN VOICE: Natural pitch & vocal tract formants verified.',
+            flagged_context_risk_factors: isHarmfulAI ? ["HARMFUL_SCAM_INTENT_DETECTED", "OTP_PHISHING_PATTERN"] : isHelpfulAI ? ["HELPFUL_SERVICE_ASSISTANT"] : []
+          },
+          acoustic_analysis: { acoustic_anomaly_score: p.ac, mfcc_variance: p.level === 'RED' ? 4.2 : 14.8, splicing_discontinuity: selectedPreset === 'spliced' ? 5.8 : 0.4 },
+          prosody_analysis: { calibrated_prosody_score: p.pr, jitter_percent: p.level === 'RED' ? 0.04 : 0.42, std_f0_hz: p.level === 'RED' ? 2.1 : 24.5 },
+          speaker_verification: { speaker_anomaly_score: p.sp, speaker_similarity: p.level === 'RED' ? 0.22 : 0.92 }
+        };
+        setAnalysisResult(result);
+        if (p.level === 'RED' || p.level === 'YELLOW') {
+          setMitigationModal({ sessionId: result.session_id, alertLevel: p.level, otp: "482910" });
+        }
       } else {
         // Mode mic or upload
         const targetBlob = mode === 'mic' ? recordedAudioBlob : audioFile;
         if (!targetBlob) {
           alert(mode === 'mic' ? "Please record your microphone audio first!" : "Please select an audio file first!");
-          setAnalyzing(false);
           return;
         }
 
@@ -249,13 +251,20 @@ export default function CallSimulator() {
         formData.append("caller_metadata_json", JSON.stringify({ caller_id: "LIVE_USER_MIC", is_off_hours: false }));
         formData.append("transaction_context_json", JSON.stringify({ amount_inr: transferAmount }));
 
-        const response = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
-          method: "POST",
-          body: formData
-        }).then(r => r.json()).catch(() => null);
+        let response = null;
+        try {
+          const r = await fetch(`${API_BASE_URL}/api/v1/analyze`, {
+            method: "POST",
+            body: formData
+          });
+          if (r.ok) {
+            response = await r.json();
+          }
+        } catch (err) {
+          console.warn("API analyze error:", err);
+        }
 
         if (response && response.risk_assessment) {
-          setAnalyzing(false);
           setAnalysisResult({
             session_id: response.session_id,
             latency_ms: response.latency_ms,
@@ -270,54 +279,48 @@ export default function CallSimulator() {
           }
         } else {
           // Dynamic in-browser audio acoustic feature extraction for real voice evaluation
-          const audioBuf = await targetBlob.arrayBuffer().catch(() => null);
           let risk = 24.5;
           let alertLvl = "GREEN";
           let userMsg = "✅ AUTHENTIC REAL HUMAN VOICE: Organic pitch jitter & natural vocal tract formants detected!";
           let acScore = 0.14;
           let prScore = 0.18;
 
-          if (audioBuf) {
-            try {
-              const ctx = new (window.AudioContext || window.webkitAudioContext)();
-              const decoded = await ctx.decodeAudioData(audioBuf);
-              const pcm = decoded.getChannelData(0);
+          try {
+            const audioBuf = await targetBlob.arrayBuffer();
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const decoded = await ctx.decodeAudioData(audioBuf);
+            const pcm = decoded.getChannelData(0);
 
-              let zcr = 0;
-              let energy = 0;
-              let diff = 0;
-              for (let i = 1; i < pcm.length; i++) {
-                energy += Math.abs(pcm[i]);
-                if ((pcm[i] >= 0 && pcm[i-1] < 0) || (pcm[i] < 0 && pcm[i-1] >= 0)) zcr++;
-                diff += Math.abs(pcm[i] - pcm[i-1]);
-              }
-
-              const meanZcr = zcr / pcm.length;
-              const meanDiff = diff / pcm.length;
-
-              // Synthetic TTS vocoders exhibit unnaturally flat zero-crossing variance and low phase derivative
-              const isSynthetic = (meanZcr < 0.11 || meanDiff < 0.015);
-              if (isSynthetic) {
-                risk = Math.min(97.8, Math.max(81.2, 85.0 + (0.11 - meanZcr) * 80.0));
-                alertLvl = "RED";
-                userMsg = "🚨 HARMFUL SCAM AI VOICE DETECTED: Synthetic phase alignment & TTS vocoder artifacts detected!";
-                acScore = 0.88;
-                prScore = 0.82;
-              } else {
-                risk = Math.min(38.0, Math.max(12.0, 16.0 + (meanZcr * 50.0)));
-                alertLvl = "GREEN";
-                userMsg = "✅ AUTHENTIC REAL HUMAN VOICE: Organic pitch jitter & natural vocal tract formants detected!";
-                acScore = 0.14;
-                prScore = 0.18;
-              }
-              risk = Math.round(risk * 10) / 10;
-              ctx.close();
-            } catch (ex) {
-              console.warn("Local audio decoding fallback:", ex);
+            let zcr = 0;
+            let diff = 0;
+            for (let i = 1; i < pcm.length; i++) {
+              if ((pcm[i] >= 0 && pcm[i-1] < 0) || (pcm[i] < 0 && pcm[i-1] >= 0)) zcr++;
+              diff += Math.abs(pcm[i] - pcm[i-1]);
             }
+
+            const meanZcr = zcr / pcm.length;
+            const meanDiff = diff / pcm.length;
+
+            const isSynthetic = (meanZcr < 0.11 || meanDiff < 0.015);
+            if (isSynthetic) {
+              risk = Math.min(97.8, Math.max(81.2, 85.0 + (0.11 - meanZcr) * 80.0));
+              alertLvl = "RED";
+              userMsg = "🚨 HARMFUL SCAM AI VOICE DETECTED: Synthetic phase alignment & TTS vocoder artifacts detected!";
+              acScore = 0.88;
+              prScore = 0.82;
+            } else {
+              risk = Math.min(38.0, Math.max(12.0, 16.0 + (meanZcr * 50.0)));
+              alertLvl = "GREEN";
+              userMsg = "✅ AUTHENTIC REAL HUMAN VOICE: Organic pitch jitter & natural vocal tract formants detected!";
+              acScore = 0.14;
+              prScore = 0.18;
+            }
+            risk = Math.round(risk * 10) / 10;
+            ctx.close();
+          } catch (ex) {
+            console.warn("Local audio decoding fallback:", ex);
           }
 
-          setAnalyzing(false);
           setAnalysisResult({
             session_id: `LIVE_${Math.random().toString(16).substring(2, 10).toUpperCase()}`,
             latency_ms: 134.2,
@@ -339,6 +342,8 @@ export default function CallSimulator() {
         }
       }
     } catch (e) {
+      console.error("Simulation error:", e);
+    } finally {
       setAnalyzing(false);
     }
   };
