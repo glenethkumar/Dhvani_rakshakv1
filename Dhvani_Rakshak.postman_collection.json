@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "Dhvani Rakshak AI Voice Clone Defense API",
+    "description": "Postman Collection for Dhvani Rakshak AI Voice Clone Detection System (REST + WebSockets)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "2. Analyze Audio File",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "backend/audio_samples/human_genuine.wav"
+            },
+            {
+              "key": "language",
+              "value": "en-IN",
+              "type": "text"
+            },
+            {
+              "key": "caller_metadata_json",
+              "value": "{\"caller_id\": \"POSTMAN_TEST\", \"speech_transcript\": \"Urgent bank security alert! Share your 6-digit OTP code immediately to avoid account block.\"}",
+              "type": "text"
+            },
+            {
+              "key": "transaction_context_json",
+              "value": "{\"amount_inr\": 1500000}",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/analyze",
+          "host": ["{{baseUrl}}"],
+          "path": ["analyze"]
+        }
+      }
+    },
+    {
+      "name": "3. Enroll Trusted Voice Profile",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "speaker_id",
+              "value": "VIP_CEO_RAJESH",
+              "type": "text"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": "backend/audio_samples/human_genuine.wav"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/enroll",
+          "host": ["{{baseUrl}}"],
+          "path": ["enroll"]
+        }
+      }
+    },
+    {
+      "name": "4. Verify Speaker Profile",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "speaker_id",
+              "value": "VIP_CEO_RAJESH",
+              "type": "text"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "src": "backend/audio_samples/human_genuine.wav"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["verify"]
+        }
+      }
+    },
+    {
+      "name": "5. Telecom Call Simulation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"scenario\": \"elevenlabs_clone\",\n  \"caller_number\": \"+91 98200 12345\",\n  \"carrier\": \"Airtel\",\n  \"codec\": \"PCMU\",\n  \"target_speaker\": \"VIP_CEO_RAJESH\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/telecom/simulate-call",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "telecom", "simulate-call"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}

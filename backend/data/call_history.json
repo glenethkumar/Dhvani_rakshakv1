@@ -1,0 +1,44 @@
+{
+  "total_calls_analyzed": 3,
+  "clones_detected_blocked": 2,
+  "human_voices_verified": 1,
+  "helpful_ai_allowed": 0,
+  "harmful_scams_blocked": 0,
+  "warnings_issued": 0,
+  "total_fraud_prevented_inr": 3000000,
+  "avg_latency_ms": 138.5,
+  "true_positive_rate": 98.4,
+  "false_positive_rate": 1.2,
+  "recent_calls": [
+    {
+      "session_id": "SESS_35CA302B",
+      "timestamp": "2026-09-10 21:03:21 UTC",
+      "caller_id": "TEST_LONG",
+      "risk_score": 99.4,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "HIGH RISK: AI Voice Clone Detected! Transaction automatically blocked.",
+      "latency_ms": 4753.51
+    },
+    {
+      "session_id": "SESS_A1E94FAC",
+      "timestamp": "2026-09-10 21:03:12 UTC",
+      "caller_id": "TEST_CLONE",
+      "risk_score": 100.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "HIGH RISK: AI Voice Clone Detected! Transaction automatically blocked.",
+      "latency_ms": 106.27
+    },
+    {
+      "session_id": "SESS_13CC6541",
+      "timestamp": "2026-09-10 21:03:10 UTC",
+      "caller_id": "TEST_GENUINE",
+      "risk_score": 27.0,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "AUTHENTIC: Voice identity verified. Proceeding with standard process.",
+      "latency_ms": 103.18
+    }
+  ]
+}

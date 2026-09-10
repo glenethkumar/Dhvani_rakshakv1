@@ -31,6 +31,8 @@ from core.blockchain_certifier import BlockchainCertifier
 from core.behavioral_biometrics import BehavioralBiometricsEngine
 from core.content_intent_analyzer import ContentIntentAnalyzer
 from core.call_store import CallStoreManager
+from core.keyword_scanner import KeywordScanner
+from core.scoring_fusion import ScoringFusionEngine
 from telecom.telecom_gateway import TelecomGateway
 from telecom.codecs import encode_pcm_to_mulaw, apply_telephony_channel_degradation
 
@@ -61,6 +63,8 @@ privacy = PrivacyComplianceManager()
 alerts = AlertService()
 intent_analyzer = ContentIntentAnalyzer()
 call_store = CallStoreManager()
+keyword_scanner = KeywordScanner()
+fusion_engine = ScoringFusionEngine(wavlm_weight=0.60, gemini_weight=0.25, keyword_weight=0.15)
 
 # Instantiate 5 Judge-Winning Modules + Telecom Gateway
 xai = ExplainabilityEngine()
@@ -220,20 +224,32 @@ async def analyze_audio_call(
     # 4. Contextual Enrichment
     context_mult, risk_flags = enricher.enrich_context(caller_metadata, transaction_context)
 
-    # 4.5 Content & Intent AI Analysis
+    # 4.5 Content & Intent AI Analysis + Fraud Keyword Scanner
     transcript_sample = caller_metadata.get("speech_transcript", "")
     intent_res = intent_analyzer.analyze_content_intent(transcript_sample, len(audio) / 16000.0)
+    keyword_res = keyword_scanner.scan_transcript(transcript_sample)
 
-    # 5. Dynamic Risk Scoring with Content & Intent AI
+    # 5. Dynamic Weighted Score Fusion Engine (0.60 WavLM + 0.25 Gemini + 0.15 Keyword)
+    wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
+    gemini_score = float(intent_res.get("risk_multiplier", 1.0) * 50.0)
+    amount = float(transaction_context.get("amount_inr", 0.0))
+
+    fusion_res = fusion_engine.evaluate_call(wavlm_score, gemini_score, keyword_res, amount)
+
     risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res, context_mult, intent_res)
-    risk_results["flagged_context_risk_factors"] = risk_flags
+    risk_results["risk_score"] = fusion_res["risk_score"]
+    risk_results["alert_level"] = fusion_res["alert_level"]
+    risk_results["recommendation"] = fusion_res["recommendation"]
+    risk_results["user_message"] = fusion_res["user_message"]
+    risk_results["flagged_context_risk_factors"] = list(set(risk_flags + fusion_res["flagged_reasons"]))
+    risk_results["fusion_breakdown"] = fusion_res["breakdown"]
+    risk_results["keyword_scan"] = keyword_res
 
     # Processing Latency Benchmark
     latency_ms = round((time.time() - start_time) * 1000.0, 2)
 
     # Save real call telemetry & analytics to persistent database
     caller_id = caller_metadata.get("caller_id", f"Call #{session_id[-4:]}")
-    amount = transaction_context.get("amount_inr", 0.0)
     call_store.record_call(session_id, caller_id, risk_results, latency_ms, amount)
 
     # 6. Mitigation Trigger
@@ -255,6 +271,7 @@ async def analyze_audio_call(
         "acoustic_analysis": ac_res,
         "prosody_analysis": pr_res,
         "speaker_verification": sp_res,
+        "keyword_scan": keyword_res,
         "xai_explanation": xai_explanation,
         "mitigation_workflow": mitigation_workflow,
         "audit_integrity_hash": audit_record["integrity_hash"]
@@ -622,6 +639,49 @@ def simulate_inbound_telecom_call(req: TelecomSimulationRequest):
         "codec_used": req.codec,
         "audio_duration_sec": dur
     }
+
+
+# ---------------------------------------------------------------------------
+# Root Endpoints Aliases (POST /analyze, WS /stream, POST /enroll, POST /verify, GET /health)
+# ---------------------------------------------------------------------------
+
+@app.get("/health")
+def root_health_check():
+    return health_check()
+
+@app.post("/analyze")
+async def root_analyze_audio(
+    file: UploadFile = File(...),
+    language: str = Form("en-IN"),
+    target_speaker_id: str = Form(None),
+    caller_metadata_json: str = Form("{}"),
+    transaction_context_json: str = Form("{}")
+):
+    return await analyze_audio_call(file, language, target_speaker_id, caller_metadata_json, transaction_context_json)
+
+@app.post("/enroll")
+async def root_enroll_speaker(
+    speaker_id: str = Form(...),
+    file: UploadFile = File(...)
+):
+    return await enroll_speaker_profile(speaker_id, file)
+
+@app.post("/verify")
+async def root_verify_speaker(
+    speaker_id: str = Form(...),
+    file: UploadFile = File(...)
+):
+    bytes_data = await file.read()
+    audio, sr = ingestion.load_wav_bytes(bytes_data)
+    audio = ingestion.preprocess(audio, sr)
+    res = speaker.verify_speaker(audio, speaker_id)
+    privacy.enforce_zero_raw_audio_policy(audio)
+    return res
+
+@app.websocket("/stream")
+@app.websocket("/ws/stream")
+async def websocket_stream_root(websocket: WebSocket):
+    await websocket_live_audio_stream(websocket)
 
 
 if __name__ == "__main__":

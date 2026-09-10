@@ -1,5 +1,5 @@
 {
-  "timestamp": 1789009621.802903,
+  "timestamp": 1789054299.9503732,
   "summary": {
     "total_samples": 40,
     "accuracy": 100.0,
@@ -9,10 +9,10 @@
     "f1_score": 100.0,
     "estimated_eer": 0.0,
     "latency": {
-      "mean_ms": 154.72,
-      "p95_ms": 228.48,
-      "min_ms": 109.19,
-      "max_ms": 238.27
+      "mean_ms": 100.28,
+      "p95_ms": 123.78,
+      "min_ms": 77.93,
+      "max_ms": 127.45
     },
     "confusion_matrix": {
       "true_positives": 20,
@@ -31,7 +31,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.0998,
       "speaker_similarity": 0.9935,
-      "latency_ms": 112.13
+      "latency_ms": 89.42
     },
     {
       "id": "GENUINE_02",
@@ -42,7 +42,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.0998,
       "speaker_similarity": 0.9966,
-      "latency_ms": 145.49
+      "latency_ms": 103.76
     },
     {
       "id": "GENUINE_03",
@@ -53,7 +53,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.1345,
       "speaker_similarity": 0.9975,
-      "latency_ms": 225.86
+      "latency_ms": 124.3
     },
     {
       "id": "GENUINE_04",
@@ -64,7 +64,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.0998,
       "speaker_similarity": 0.9932,
-      "latency_ms": 109.19
+      "latency_ms": 82.46
     },
     {
       "id": "GENUINE_05",
@@ -75,7 +75,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.0998,
       "speaker_similarity": 0.9955,
-      "latency_ms": 132.88
+      "latency_ms": 101.62
     },
     {
       "id": "GENUINE_06",
@@ -86,7 +86,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.1263,
       "speaker_similarity": 0.997,
-      "latency_ms": 159.5
+      "latency_ms": 115.34
     },
     {
       "id": "GENUINE_07",
@@ -97,7 +97,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.0998,
       "speaker_similarity": 0.9934,
-      "latency_ms": 112.36
+      "latency_ms": 82.54
     },
     {
       "id": "GENUINE_08",
@@ -108,7 +108,7 @@
       "alert_level": "GREEN",
       "neural_deepfake_prob": 0.0998,
       "speaker_similarity": 0.9964,
-      "latency_ms": 127.23
+      "latency_ms": 94.72
     }
   ]
 }
