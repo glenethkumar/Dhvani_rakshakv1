@@ -1,6 +1,6 @@
 """
 Dhvani Rakshak - Main FastAPI Application Server & WebSockets Gateway
-Enterprise Real-Time Voice Cloning Detection & Prevention API
+Enterprise Real-Time AI Voice Cloning Detection Engine
 """
 
 import time
@@ -25,16 +25,10 @@ from core.context_enricher import ContextEnricher
 from core.privacy_compliance import PrivacyComplianceManager
 from core.alert_service import AlertService
 from core.explainability_engine import ExplainabilityEngine
-from core.gov_vip_protection import GovernmentVipProtection
-from core.dark_web_monitor import DarkWebThreatMonitor
-from core.blockchain_certifier import BlockchainCertifier
 from core.behavioral_biometrics import BehavioralBiometricsEngine
-from core.content_intent_analyzer import ContentIntentAnalyzer
 from core.call_store import CallStoreManager
 from core.keyword_scanner import KeywordScanner
 from core.scoring_fusion import ScoringFusionEngine
-from telecom.telecom_gateway import TelecomGateway
-from telecom.codecs import encode_pcm_to_mulaw, apply_telephony_channel_degradation
 
 app = FastAPI(
     title="Dhvani Rakshak API",
@@ -61,18 +55,12 @@ risk_engine = RiskScoringEngine(acoustic_weight=0.40, prosody_weight=0.30, speak
 enricher = ContextEnricher()
 privacy = PrivacyComplianceManager()
 alerts = AlertService()
-intent_analyzer = ContentIntentAnalyzer()
 call_store = CallStoreManager()
 keyword_scanner = KeywordScanner()
 fusion_engine = ScoringFusionEngine(wavlm_weight=1.00)
 
-# Instantiate 5 Judge-Winning Modules + Telecom Gateway
 xai = ExplainabilityEngine()
-gov_shield = GovernmentVipProtection()
-darkweb = DarkWebThreatMonitor()
-blockchain = BlockchainCertifier()
 behavioral = BehavioralBiometricsEngine()
-telecom = TelecomGateway()
 
 class ConfigUpdateRequest(BaseModel):
     acoustic_weight: float | None = None
@@ -171,7 +159,7 @@ async def analyze_audio_call(
     transaction_context_json: str = Form("{}")
 ):
     """
-    Primary endpoint for single audio file verification & risk assessment.
+    Primary endpoint for single audio file verification & pure voice authenticity assessment.
     """
     start_time = time.time()
     session_id = f"SESS_{uuid.uuid4().hex[:8].upper()}"
@@ -187,6 +175,8 @@ async def analyze_audio_call(
             "latency_ms": round((time.time() - start_time) * 1000.0, 2),
             "risk_assessment": {
                 "risk_score": 0.0,
+                "authenticity_score": 100.0,
+                "risk_level": "Low",
                 "alert_level": "WAITING",
                 "is_speech_detected": False,
                 "user_message": "🎧 Listening for caller voice... (Waiting for speech)",
@@ -221,25 +211,23 @@ async def analyze_audio_call(
     # 3. Speaker Verification
     sp_res = speaker.verify_speaker(audio, target_speaker_id)
 
-    # 4. Contextual Enrichment
-    context_mult, risk_flags = enricher.enrich_context(caller_metadata, transaction_context)
-
     # 4. Pure Acoustic & Voice Biometric Evaluation
     wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
     amount = float(transaction_context.get("amount_inr", 0.0))
 
     fusion_res = fusion_engine.evaluate_call(wavlm_score, amount)
 
-    risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res, context_mult, None)
+    risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res)
     risk_results["risk_score"] = fusion_res["risk_score"]
     risk_results["ai_probability"] = fusion_res["ai_probability"]
     risk_results["human_authenticity"] = fusion_res["human_authenticity"]
+    risk_results["authenticity_score"] = fusion_res["human_authenticity"]
     risk_results["alert_level"] = fusion_res["alert_level"]
     risk_results["voice_type"] = fusion_res["voice_type"]
     risk_results["voice_label"] = fusion_res["voice_label"]
     risk_results["recommendation"] = fusion_res["recommendation"]
     risk_results["user_message"] = fusion_res["user_message"]
-    risk_results["flagged_context_risk_factors"] = list(set(risk_flags + fusion_res["flagged_reasons"]))
+    risk_results["flagged_context_risk_factors"] = list(set(fusion_res["flagged_reasons"]))
     risk_results["fusion_breakdown"] = fusion_res["breakdown"]
 
     # Processing Latency Benchmark
@@ -249,16 +237,16 @@ async def analyze_audio_call(
     caller_id = caller_metadata.get("caller_id", f"Call #{session_id[-4:]}")
     call_store.record_call(session_id, caller_id, risk_results, latency_ms, amount)
 
-    # 6. Mitigation Trigger
+    # 5. Mitigation Trigger
     mitigation_workflow = None
     if risk_results["alert_level"] in ["RED", "YELLOW"]:
         mitigation_workflow = alerts.trigger_mitigation_workflow(session_id, risk_results["alert_level"], caller_metadata)
 
-    # 7. Privacy Compliance & Zero Audio Policy Enforcement
+    # 6. Privacy Compliance & Zero Audio Policy Enforcement
     audit_record = privacy.create_audit_record(session_id, caller_metadata, risk_results)
     privacy.enforce_zero_raw_audio_policy(audio)
 
-    # 8. Explainable AI Rationale
+    # 7. Explainable AI Rationale
     xai_explanation = xai.generate_explanation(ac_res, pr_res, sp_res, risk_results)
 
     return {
@@ -307,25 +295,6 @@ def handle_mitigation(req: MitigationRequest):
 def get_audit_logs(limit: int = 50):
     return privacy.get_audit_trail(limit)
 
-@app.get("/api/v1/darkweb-threats")
-def get_darkweb_threats():
-    return darkweb.get_all_threats()
-
-@app.post("/api/v1/darkweb-scan")
-def scan_darkweb(entity_name: str = Form("Rajesh Sharma (CEO)")):
-    return darkweb.scan_entity(entity_name)
-
-@app.post("/api/v1/darkweb-mitigate")
-def mitigate_darkweb_threat(threat_id: str = Form(...), action_type: str = Form("ROTATE_CERTIFICATE")):
-    return {
-        "status": "MITIGATED",
-        "threat_id": threat_id,
-        "action_taken": action_type,
-        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "new_certificate_id": f"CERT_ROTATED_{uuid.uuid4().hex[:8].upper()}",
-        "message": "Key rotation completed. Threat quarantined on internal authentication gateway."
-    }
-
 @app.post("/api/v1/explain")
 def get_explanation(case_type: str = Form("elevenlabs")):
     if case_type == "elevenlabs":
@@ -344,7 +313,7 @@ def get_explanation(case_type: str = Form("elevenlabs")):
             "speaker_similarity": 0.38,
             "speaker_anomaly_score": 0.85
         }
-        risk_mock = {"risk_score": 88.5, "alert_level": "RED"}
+        risk_mock = {"risk_score": 88.5, "authenticity_score": 11.5, "risk_level": "High", "alert_level": "RED"}
     else:
         ac_mock = {
             "acoustic_anomaly_score": 0.18,
@@ -361,22 +330,13 @@ def get_explanation(case_type: str = Form("elevenlabs")):
             "speaker_similarity": 0.94,
             "speaker_anomaly_score": 0.12
         }
-        risk_mock = {"risk_score": 28.4, "alert_level": "GREEN"}
+        risk_mock = {"risk_score": 28.4, "authenticity_score": 71.6, "risk_level": "Low", "alert_level": "GREEN"}
 
     return {
         "case_type": case_type,
         "risk_assessment": risk_mock,
         "explanation": xai.generate_explanation(ac_mock, pr_mock, sp_mock, risk_mock)
     }
-
-@app.post("/api/v1/gov-protect")
-def check_government_protection(caller_id: str = Form(...), risk_score: float = Form(75.0)):
-    return gov_shield.verify_government_call(caller_id, risk_score, {})
-
-@app.post("/api/v1/blockchain-issue")
-def issue_voice_certificate(speaker_id: str = Form(...), speaker_name: str = Form(...)):
-    # Generate certificate
-    return blockchain.issue_certificate(speaker_id, speaker_name, [0.142, -0.089, 0.420, 0.311])
 
 @app.post("/api/v1/behavioral-analyze")
 def analyze_behavioral_profile(typing_cps: float = Form(4.2), mouse_jitter: float = Form(0.15), emotional_state: str = Form("HIGH_STRESS_URGENT")):
@@ -412,6 +372,8 @@ async def websocket_live_audio_stream(websocket: WebSocket):
                     "session_id": session_id,
                     "latency_ms": latency_ms,
                     "risk_score": 0.0,
+                    "authenticity_score": 100.0,
+                    "risk_level": "Low",
                     "alert_level": "WAITING",
                     "recommendation": "WAIT_FOR_SPEECH",
                     "tts_signatures": {"ElevenLabs": 0.0, "OpenAI_Voice": 0.0},
@@ -438,6 +400,8 @@ async def websocket_live_audio_stream(websocket: WebSocket):
                 "session_id": session_id,
                 "latency_ms": latency_ms,
                 "risk_score": risk_res["risk_score"],
+                "authenticity_score": risk_res["authenticity_score"],
+                "risk_level": risk_res["risk_level"],
                 "alert_level": risk_res["alert_level"],
                 "recommendation": risk_res["recommendation"],
                 "tts_signatures": ac_res["tts_signatures"],
@@ -451,196 +415,7 @@ async def websocket_live_audio_stream(websocket: WebSocket):
     except Exception as e:
         print(f"WebSocket Error: {e}")
 
-
-# ---------------------------------------------------------------------------
-# Telecom & PBX Gateway Telephony Endpoints
-# ---------------------------------------------------------------------------
-from fastapi.responses import Response
-from typing import Optional
-
-class TelecomCallActionRequest(BaseModel):
-    call_sid: str
-    action: str
-    notes: Optional[str] = ""
-
-class TelecomSimulationRequest(BaseModel):
-    caller_number: Optional[str] = "+91 98200 12345"
-    dialed_number: Optional[str] = "+91 22 6600 0000"
-    carrier: Optional[str] = "Airtel"
-    scenario: Optional[str] = "elevenlabs_clone"
-    codec: Optional[str] = "PCMU"
-    target_speaker: Optional[str] = "VIP_CEO"
-
-@app.get("/api/v1/telecom/trunk-status")
-def get_telecom_trunk_status():
-    """Return PBX SIP trunk status and line capacity metrics."""
-    return telecom.get_trunk_summary()
-
-@app.get("/api/v1/telecom/active-calls")
-def get_telecom_active_calls():
-    """Return real-time active telephone calls monitored on the trunk."""
-    calls = telecom.get_active_calls()
-    return {
-        "active_calls": calls,
-        "total_active": len(calls),
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    }
-
-@app.post("/api/v1/telecom/inbound-webhook")
-async def telecom_inbound_webhook():
-    """
-    Inbound Call Webhook for Twilio, Exotel, Asterisk, and FreeSWITCH.
-    Returns XML stream routing instructions to intercept RTP voice stream.
-    """
-    call_sid = f"CA_{uuid.uuid4().hex[:12].upper()}"
-    telecom.initiate_call(
-        caller_number="+91 98200 12345",
-        dialed_number="+91 22 6600 0000",
-        carrier="Airtel",
-        codec="PCMU",
-        call_sid=call_sid
-    )
-    
-    xml_response = f"""<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Say voice="Polly.Aditi">Connecting to Dhvani Rakshak AI voice biometrics gateway.</Say>
-    <Connect>
-        <Stream url="ws://127.0.0.1:8000/ws/telecom-stream">
-            <Parameter name="call_sid" value="{call_sid}" />
-        </Stream>
-    </Connect>
-</Response>"""
-    return Response(content=xml_response, media_type="application/xml")
-
-@app.websocket("/ws/telecom-stream")
-async def websocket_telecom_media_stream(websocket: WebSocket):
-    """
-    High-speed WebSocket endpoint for live G.711 telephony media streams.
-    Supports both raw binary PCM/mu-law and Twilio JSON media payloads.
-    """
-    await websocket.accept()
-    call_sid = f"CA_{uuid.uuid4().hex[:12].upper()}"
-    telecom.initiate_call(
-        caller_number="+91 98200 12345",
-        dialed_number="+91 22 6600 0000",
-        carrier="Airtel",
-        codec="PCMU",
-        call_sid=call_sid
-    )
-
-    try:
-        while True:
-            # Receive either text (JSON Twilio event) or raw binary frame
-            message = await websocket.receive()
-            raw_bytes = b""
-            
-            if "bytes" in message and message["bytes"]:
-                raw_bytes = message["bytes"]
-            elif "text" in message and message["text"]:
-                try:
-                    payload = json.loads(message["text"])
-                    event = payload.get("event")
-                    if event == "start":
-                        call_sid = payload.get("start", {}).get("callSid", call_sid)
-                        continue
-                    elif event == "media":
-                        raw_bytes = base64.b64decode(payload.get("media", {}).get("payload", ""))
-                    elif event == "stop":
-                        break
-                except Exception:
-                    continue
-
-            if not raw_bytes or len(raw_bytes) == 0:
-                continue
-
-            result = telecom.process_telecom_audio_chunk(call_sid, raw_bytes, is_base64=False)
-            
-            # Send real-time risk feedback to operator/carrier
-            await websocket.send_json(result)
-
-            # If automated SIP BYE triggered, notify and close
-            if result.get("mitigation_action") == "TERMINATED_BY_SIP_BYE":
-                await websocket.send_json({
-                    "event": "SIP_BYE_DROPPED",
-                    "reason": "AI Clone Attack Automatically Severed",
-                    "call_sid": call_sid
-                })
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"Telecom WebSocket Error: {e}")
-
-@app.post("/api/v1/telecom/call-action")
-def execute_telecom_call_action(req: TelecomCallActionRequest):
-    """Execute manual or automated in-call defense action (terminate, transfer, challenge)."""
-    res = telecom.execute_call_action(req.call_sid, req.action, req.notes)
-    return res
-
-@app.post("/api/v1/telecom/simulate-call")
-def simulate_inbound_telecom_call(req: TelecomSimulationRequest):
-    """
-    Simulate an inbound telephone call with real G.711 telephony downsampling,
-    telephony degradation filter, and automated mid-call defense evaluation.
-    """
-    from tests.generate_test_audio import (
-        generate_genuine_human_audio,
-        generate_elevenlabs_ai_clone,
-        generate_spliced_audio_attack
-    )
-
-    # 1. Generate audio frame based on scenario
-    dur = 3.0
-    if req.scenario == "genuine_ceo":
-        raw_audio = generate_genuine_human_audio(dur)
-        vip_id = req.target_speaker or "VIP_CEO"
-        speaker.enroll_speaker(vip_id, raw_audio)
-        telecom.speaker_verifier.enroll_speaker(vip_id, raw_audio)
-    elif req.scenario == "elevenlabs_clone":
-        raw_audio = generate_elevenlabs_ai_clone(dur)
-    elif req.scenario == "spliced_attack":
-        raw_audio = generate_spliced_audio_attack(dur)
-    else:
-        raw_audio = generate_elevenlabs_ai_clone(dur)
-
-    # 2. Simulate PSTN / VoLTE channel degradation
-    degraded_audio = apply_telephony_channel_degradation(raw_audio)
-
-    # 3. Downsample to 8kHz and encode to G.711 mu-law bytes
-    import scipy.signal as signal
-    try:
-        from telecom.codecs import encode_pcm_to_mulaw
-    except ImportError:
-        from backend.telecom.codecs import encode_pcm_to_mulaw
-
-    resampled_8k = signal.resample(degraded_audio, int(dur * 8000))
-    mulaw_bytes = encode_pcm_to_mulaw(resampled_8k)
-
-    # 4. Initiate Call on Telecom Gateway
-    session = telecom.initiate_call(
-        caller_number=req.caller_number,
-        dialed_number=req.dialed_number,
-        carrier=req.carrier,
-        codec=req.codec or "PCMU",
-        target_speaker_id=req.target_speaker or "VIP_CEO"
-    )
-
-    # 5. Process through Telecom Gateway
-    result = telecom.process_telecom_audio_chunk(session.call_sid, mulaw_bytes, is_base64=False)
-
-    return {
-        "status": "PROCESSED",
-        "session": session.to_dict(),
-        "chunk_evaluation": result,
-        "scenario": req.scenario,
-        "codec_used": req.codec,
-        "audio_duration_sec": dur
-    }
-
-
-# ---------------------------------------------------------------------------
-# Root Endpoints Aliases (POST /analyze, WS /stream, POST /enroll, POST /verify, GET /health, GET /)
-# ---------------------------------------------------------------------------
-
+# Root Endpoints & Aliases
 @app.get("/")
 def root_index():
     return {
@@ -689,9 +464,7 @@ async def root_verify_speaker(
 async def websocket_stream_root(websocket: WebSocket):
     await websocket_live_audio_stream(websocket)
 
-
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
-

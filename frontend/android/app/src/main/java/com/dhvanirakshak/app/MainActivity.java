@@ -11,9 +11,6 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Register Native Call Detector Plugin for Background Phone Call Interception
-        registerPlugin(CallDetectorPlugin.class);
-
         super.onCreate(savedInstanceState);
 
         // Enhance native mobile system bar appearance

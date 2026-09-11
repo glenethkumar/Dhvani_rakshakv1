@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Waves, PhoneCall, Cpu, Eye, Award, Database, HeartPulse, ShieldCheck, Sliders, FileText, Zap, ChevronRight, Search, Shield, Radio, HelpCircle } from 'lucide-react';
+import { Menu, X, Waves, PhoneCall, Cpu, Eye, ShieldCheck, Sliders, FileText, Zap, ChevronRight, Search, Shield, HelpCircle } from 'lucide-react';
 import LiveMonitor from './components/LiveMonitor';
 import CallSimulator from './components/CallSimulator';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
@@ -7,44 +7,31 @@ import VoiceEnrollment from './components/VoiceEnrollment';
 import PolicyConfig from './components/PolicyConfig';
 import ComplianceAudit from './components/ComplianceAudit';
 import ExplainabilityDashboard from './components/ExplainabilityDashboard';
-import GovVipProtection from './components/GovVipProtection';
-import BlockchainCerts from './components/BlockchainCerts';
-import BehavioralBiometrics from './components/BehavioralBiometrics';
-import TelecomGateway from './components/TelecomGateway';
 import HowItWorks from './components/HowItWorks';
 import ConsentBanner from './components/ConsentBanner';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('telecom');
+  const [activeTab, setActiveTab] = useState('monitor');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const categories = [
     {
-      name: '🛡️ Voice Call Protection',
+      name: '🛡️ Core Detection Engine',
       items: [
-        { id: 'telecom', label: 'Enterprise & Call Protection', icon: Radio, simpleDesc: 'Scans in-app VoIP, PBX trunks, and speakerphone mic calls.' },
-        { id: 'howitworks', label: 'How Dhvani Rakshak Works', icon: HelpCircle, simpleDesc: 'Interactive 6-step flow showing how voice clone defense works.' },
-        { id: 'monitor', label: 'Live Mic Scanner', icon: Waves, simpleDesc: 'Checks live microphone audio and alerts you if a voice is fake.' },
-        { id: 'simulator', label: 'Scam Call Simulator', icon: PhoneCall, simpleDesc: 'Test simulated demo calls to see fraud alerts in action.' },
-        { id: 'dashboard', label: 'Security Dashboard', icon: Cpu, simpleDesc: 'Overview of calls scanned, fraud risk trends, and money saved.' }
+        { id: 'monitor', label: 'Live Monitor', icon: Waves, simpleDesc: 'Real-time live microphone stream AI voice detection scanner.' },
+        { id: 'simulator', label: 'Call Simulator', icon: PhoneCall, simpleDesc: 'Simulates real vs AI-cloned voice calls.' },
+        { id: 'xai', label: 'Explainable AI', icon: Eye, simpleDesc: 'Forensic acoustic analysis showing reasons why a voice was flagged.' },
+        { id: 'howitworks', label: 'How It Works', icon: HelpCircle, simpleDesc: 'Interactive processing pipeline diagram.' }
       ]
     },
     {
-      name: '🔍 Voice Analysis & Safety',
+      name: '📊 Dashboard & Controls',
       items: [
-        { id: 'xai', label: 'Why Is It Fake?', icon: Eye, simpleDesc: 'Simple explanations showing why a call was marked fake.' },
-        { id: 'gov', label: 'VIP High Protection', icon: Award, simpleDesc: 'High-security mode for bank managers, executives, and leaders.' },
-        { id: 'blockchain', label: 'Digital Voice Pass (Future)', icon: Database, simpleDesc: 'Future roadmap feature for blockchain voice certificates.' },
-        { id: 'behavioral', label: 'Caller Behavior Check', icon: HeartPulse, simpleDesc: 'Checks caller stress, unusual call timing, and fraud habits.' }
-      ]
-    },
-    {
-      name: '⚙️ Settings & Privacy',
-      items: [
-        { id: 'enrollment', label: 'Voice Profile Setup', icon: ShieldCheck, simpleDesc: 'Safely save your real voice profile without storing audio.' },
-        { id: 'policy', label: 'Policy & Risk Controls', icon: Sliders, simpleDesc: 'Adjust sensitivity thresholds and human-in-the-loop rules.' },
-        { id: 'audit', label: 'Privacy & Audit Logs', icon: FileText, simpleDesc: 'Review DPDP Act 2023 compliance logs with SHA-256 signatures.' }
+        { id: 'dashboard', label: 'Executive Dashboard', icon: Cpu, simpleDesc: 'Overview of total calls scanned, accuracy, and latency metrics.' },
+        { id: 'enrollment', label: 'Voice Enrollment', icon: ShieldCheck, simpleDesc: 'Register genuine voice biometrics without storing raw audio.' },
+        { id: 'policy', label: 'Policy Configuration', icon: Sliders, simpleDesc: 'Adjust risk threshold sensitivity and model weights.' },
+        { id: 'audit', label: 'Compliance Audit Logs', icon: FileText, simpleDesc: 'DPDP Act 2023 zero-raw-audio retention audit trail.' }
       ]
     }
   ];
@@ -74,10 +61,9 @@ export default function App() {
         top: 0,
         zIndex: 100
       }}>
-        {/* Left Side: 3-Line Menu Drawer Toggle Button + Brand Logo */}
+        {/* Left Side: Menu Toggle + Brand Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           
-          {/* 3-Line Hamburger Menu Button (≡) */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             style={{
@@ -98,7 +84,6 @@ export default function App() {
             {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          {/* Logo & Platform Name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
               width: '36px', height: '36px', borderRadius: '10px',
@@ -118,35 +103,44 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right Side: Android Call Interceptor Button & Active Engine Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={() => {
-              if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CallDetector) {
-                window.Capacitor.Plugins.CallDetector.requestCallPermissions();
-                alert("Android Auto Call Interceptor Enabled! Floating risk badge will show on incoming calls.");
-              } else {
-                alert("Android Call Interceptor Plugin Active. Run app in Android Studio to experience live floating badge during phone calls!");
-              }
-            }}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: '700',
-              color: '#06B6D4', background: 'rgba(6, 182, 212, 0.12)', padding: '6px 12px',
-              borderRadius: '20px', border: '1px solid rgba(6, 182, 212, 0.3)', cursor: 'pointer', whiteSpace: 'nowrap'
-            }}
-          >
-            <Radio size={13} /> Auto Interceptor
-          </button>
+        {/* Top Quick Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', padding: '4px 0' }}>
+          {[
+            { id: 'monitor', label: 'Live Monitor' },
+            { id: 'simulator', label: 'Call Simulator' },
+            { id: 'xai', label: 'Explainable AI' },
+            { id: 'enrollment', label: 'Voice Enrollment' },
+            { id: 'policy', label: 'Policy Configuration' },
+            { id: 'dashboard', label: 'Executive Dashboard' },
+            { id: 'audit', label: 'Compliance Audit Logs' }
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: activeTab === t.id ? '1px solid #06B6D4' : '1px solid transparent',
+                background: activeTab === t.id ? 'rgba(6, 182, 212, 0.15)' : 'transparent',
+                color: activeTab === t.id ? '#06B6D4' : '#9CA3AF',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* 3-Line Menu Navigation Drawer */}
+      {/* Navigation Drawer */}
       {isMenuOpen && (
         <div 
           onClick={() => setIsMenuOpen(false)}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)', zIndex: 200, display: 'flex' }}
         >
-          {/* Drawer Sidebar */}
           <div 
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -162,13 +156,11 @@ export default function App() {
               overflowY: 'auto'
             }}
           >
-            {/* Drawer Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '14px' }}>
               <div>
                 <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, color: '#06B6D4', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Shield size={18} /> Application Features
+                  <Shield size={18} /> Menu Navigation
                 </h3>
-                <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>Tap any feature to open</p>
               </div>
               <button 
                 onClick={() => setIsMenuOpen(false)}
@@ -178,7 +170,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* Search Input */}
             <div style={{ position: 'relative' }}>
               <Search size={16} color="#6B7280" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
@@ -199,7 +190,6 @@ export default function App() {
               />
             </div>
 
-            {/* Feature Categories */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {filteredCategories.map((cat, idx) => (
                 <div key={idx}>
@@ -264,16 +254,11 @@ export default function App() {
 
       {/* Main View Container */}
       <main style={{ flex: 1, padding: '16px', maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
-
-        {activeTab === 'telecom' && <TelecomGateway />}
-        {activeTab === 'howitworks' && <HowItWorks />}
         {activeTab === 'monitor' && <LiveMonitor />}
         {activeTab === 'simulator' && <CallSimulator />}
-        {activeTab === 'dashboard' && <ExecutiveDashboard />}
         {activeTab === 'xai' && <ExplainabilityDashboard />}
-        {activeTab === 'gov' && <GovVipProtection />}
-        {activeTab === 'blockchain' && <BlockchainCerts />}
-        {activeTab === 'behavioral' && <BehavioralBiometrics />}
+        {activeTab === 'howitworks' && <HowItWorks />}
+        {activeTab === 'dashboard' && <ExecutiveDashboard />}
         {activeTab === 'enrollment' && <VoiceEnrollment />}
         {activeTab === 'policy' && <PolicyConfig />}
         {activeTab === 'audit' && <ComplianceAudit />}

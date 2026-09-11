@@ -13,9 +13,7 @@ from core.prosody_analyzer import ProsodyAnalyzer
 from core.speaker_verifier import SpeakerVerifier
 from core.multilingual_engine import MultilingualEngine
 from core.risk_scorer import RiskScoringEngine
-from core.keyword_scanner import KeywordScanner
 from core.scoring_fusion import ScoringFusionEngine
-from core.content_intent_analyzer import ContentIntentAnalyzer
 from core.privacy_compliance import PrivacyComplianceManager
 from core.explainability_engine import ExplainabilityEngine
 
@@ -31,9 +29,7 @@ class WebSocketStreamHandler:
         self.speaker = SpeakerVerifier(embedding_dim=192)
         self.multilingual = MultilingualEngine(default_lang="en-IN")
         self.risk_engine = RiskScoringEngine()
-        self.keyword_scanner = KeywordScanner()
-        self.fusion_engine = ScoringFusionEngine(wavlm_weight=0.60, gemini_weight=0.25, keyword_weight=0.15)
-        self.intent_analyzer = ContentIntentAnalyzer()
+        self.fusion_engine = ScoringFusionEngine(wavlm_weight=1.00)
         self.privacy = PrivacyComplianceManager()
         self.xai = ExplainabilityEngine()
 
@@ -63,6 +59,8 @@ class WebSocketStreamHandler:
                         "session_id": session_id,
                         "latency_ms": latency_ms,
                         "risk_score": 0.0,
+                        "authenticity_score": 100.0,
+                        "risk_level": "Low",
                         "alert_level": "WAITING",
                         "recommendation": "WAIT_FOR_SPEECH",
                         "user_message": "🎧 Listening for caller voice... (Waiting for speech)",
@@ -84,20 +82,15 @@ class WebSocketStreamHandler:
                 # 5. Speaker Verification
                 sp_res = self.speaker.verify_speaker(audio, target_speaker_id)
 
-                # 6. Intent & Keyword Scan
-                transcript_sample = ""
-                intent_res = self.intent_analyzer.analyze_content_intent(transcript_sample, len(audio)/16000.0)
-                keyword_res = self.keyword_scanner.scan_transcript(transcript_sample)
-
-                # 7. Weighted Score Fusion
+                # 6. Pure Acoustic Score Fusion
                 wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
-                gemini_score = float(intent_res.get("risk_multiplier", 1.0) * 50.0)
-                fusion_res = self.fusion_engine.evaluate_call(wavlm_score, gemini_score, keyword_res)
+                fusion_res = self.fusion_engine.evaluate_call(wavlm_score)
 
-                # 8. Explainability Reasons
+                # 7. Explainability Reasons
                 risk_res = {
                     "session_id": session_id,
                     "risk_score": fusion_res["risk_score"],
+                    "authenticity_score": fusion_res["human_authenticity"],
                     "alert_level": fusion_res["alert_level"],
                     "recommendation": fusion_res["recommendation"],
                     "user_message": fusion_res["user_message"]
@@ -111,6 +104,7 @@ class WebSocketStreamHandler:
                     "session_id": session_id,
                     "latency_ms": latency_ms,
                     "risk_score": fusion_res["risk_score"],
+                    "authenticity_score": fusion_res["human_authenticity"],
                     "alert_level": fusion_res["alert_level"],
                     "recommendation": fusion_res["recommendation"],
                     "user_message": fusion_res["user_message"],
