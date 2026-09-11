@@ -64,7 +64,7 @@ alerts = AlertService()
 intent_analyzer = ContentIntentAnalyzer()
 call_store = CallStoreManager()
 keyword_scanner = KeywordScanner()
-fusion_engine = ScoringFusionEngine(wavlm_weight=1.00, gemini_weight=0.00, keyword_weight=0.00)
+fusion_engine = ScoringFusionEngine(wavlm_weight=1.00)
 
 # Instantiate 5 Judge-Winning Modules + Telecom Gateway
 xai = ExplainabilityEngine()
@@ -224,28 +224,23 @@ async def analyze_audio_call(
     # 4. Contextual Enrichment
     context_mult, risk_flags = enricher.enrich_context(caller_metadata, transaction_context)
 
-    # 4.5 Content & Intent AI Analysis + Fraud Keyword Scanner
-    transcript_sample = caller_metadata.get("speech_transcript", "")
-    intent_res = intent_analyzer.analyze_content_intent(transcript_sample, len(audio) / 16000.0)
-    keyword_res = keyword_scanner.scan_transcript(transcript_sample)
-
-    # 5. Dynamic Weighted Score Fusion Engine (0.60 WavLM + 0.25 Gemini + 0.15 Keyword)
+    # 4. Pure Acoustic & Voice Biometric Evaluation
     wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
-    gemini_score = float(intent_res.get("risk_multiplier", 1.0) * 50.0)
     amount = float(transaction_context.get("amount_inr", 0.0))
 
-    fusion_res = fusion_engine.evaluate_call(wavlm_score, gemini_score, keyword_res, amount)
+    fusion_res = fusion_engine.evaluate_call(wavlm_score, amount)
 
-    risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res, context_mult, intent_res)
+    risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res, context_mult, None)
     risk_results["risk_score"] = fusion_res["risk_score"]
+    risk_results["ai_probability"] = fusion_res["ai_probability"]
+    risk_results["human_authenticity"] = fusion_res["human_authenticity"]
     risk_results["alert_level"] = fusion_res["alert_level"]
-    risk_results["voice_type"] = fusion_res.get("voice_type", "REAL_HUMAN_VOICE")
-    risk_results["voice_label"] = fusion_res.get("voice_label", "Real Human Voice")
+    risk_results["voice_type"] = fusion_res["voice_type"]
+    risk_results["voice_label"] = fusion_res["voice_label"]
     risk_results["recommendation"] = fusion_res["recommendation"]
     risk_results["user_message"] = fusion_res["user_message"]
     risk_results["flagged_context_risk_factors"] = list(set(risk_flags + fusion_res["flagged_reasons"]))
     risk_results["fusion_breakdown"] = fusion_res["breakdown"]
-    risk_results["keyword_scan"] = keyword_res
 
     # Processing Latency Benchmark
     latency_ms = round((time.time() - start_time) * 1000.0, 2)
@@ -273,7 +268,6 @@ async def analyze_audio_call(
         "acoustic_analysis": ac_res,
         "prosody_analysis": pr_res,
         "speaker_verification": sp_res,
-        "keyword_scan": keyword_res,
         "xai_explanation": xai_explanation,
         "mitigation_workflow": mitigation_workflow,
         "audit_integrity_hash": audit_record["integrity_hash"]
