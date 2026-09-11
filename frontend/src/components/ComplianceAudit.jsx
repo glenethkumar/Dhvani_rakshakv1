@@ -10,7 +10,8 @@ export default function ComplianceAudit() {
       masked_caller_id: "+91 98*** **210",
       risk_score: 28.4,
       alert_level: "GREEN",
-      recommendation: "ALLOW_TRANSACTION",
+      recommended_action: "ALLOW_CALL",
+      action_taken: "CALL_ALLOWED",
       raw_audio_retained: false,
       integrity_hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
@@ -20,7 +21,8 @@ export default function ComplianceAudit() {
       masked_caller_id: "+91 98*** **200",
       risk_score: 88.5,
       alert_level: "RED",
-      recommendation: "BLOCK_TRANSACTION_AND_ESCALATE",
+      recommended_action: "RECOMMEND_DISCONNECT",
+      action_taken: "USER_WARNED_DISCONNECTED_MANUALLY",
       raw_audio_retained: false,
       integrity_hash: "8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4"
     },
@@ -30,7 +32,8 @@ export default function ComplianceAudit() {
       masked_caller_id: "+91 99*** **049",
       risk_score: 72.1,
       alert_level: "YELLOW",
-      recommendation: "REQUIRE_SECONDARY_VERIFICATION",
+      recommended_action: "WARN_USER_CAUTION",
+      action_taken: "USER_NOTIFIED",
       raw_audio_retained: false,
       integrity_hash: "5d41402abc4b2a76b9719d911017c592abe9768078652ca9aa8920150937a07c"
     }
@@ -199,7 +202,8 @@ export default function ComplianceAudit() {
             const caller = log.masked_caller_id || log.caller;
             const score = log.risk_score || log.score;
             const level = log.alert_level || log.alert;
-            const rec = log.recommendation || log.rec;
+            const rec = log.recommended_action || log.recommendation || log.rec || "RECOMMEND_DISCONNECT";
+            const taken = log.action_taken || log.action || "USER_WARNED_DISCONNECTED_MANUALLY";
             const hash = log.integrity_hash || log.hash;
 
             return (
@@ -228,11 +232,16 @@ export default function ComplianceAudit() {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '12px' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    Action Triggered: <strong style={{ color: '#FFF' }}>{rec}</strong>
-                  </span>
+                  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      System Advice: <strong style={{ color: '#F59E0B' }}>{rec}</strong>
+                    </span>
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      Action Executed: <strong style={{ color: '#06B6D4' }}>{taken}</strong>
+                    </span>
+                  </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'monospace', fontSize: '11px', color: '#9CA3AF' }}>
-                    <Lock size={12} color="#10B981" /> SHA-256: {hash ? `${hash.substring(0, 32)}...` : 'N/A'}
+                    <Lock size={12} color="#10B981" /> SHA-256 Audit Hash: {hash ? `${hash.substring(0, 24)}...` : 'N/A'}
                   </div>
                 </div>
               </div>

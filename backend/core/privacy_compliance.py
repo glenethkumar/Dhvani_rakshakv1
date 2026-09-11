@@ -30,7 +30,7 @@ class PrivacyComplianceManager:
 
     def create_audit_record(self, session_id: str, caller_info: dict, risk_results: dict) -> dict:
         """
-        Generate tamper-evident, PII-anonymized audit record compliant with RBI & GDPR.
+        Generate tamper-evident, PII-anonymized audit record compliant with India DPDP Act 2023 & RBI rules.
         """
         timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         anonymized_caller = self.anonymize_phone(caller_info.get("caller_id", "UNKNOWN"))
@@ -38,14 +38,18 @@ class PrivacyComplianceManager:
         record_payload = {
             "session_id": session_id,
             "timestamp": timestamp,
+            "masked_caller_id": anonymized_caller,
             "anonymized_caller": anonymized_caller,
             "risk_score": risk_results.get("risk_score"),
             "alert_level": risk_results.get("alert_level"),
             "recommendation": risk_results.get("recommendation"),
+            "recommended_action": risk_results.get("recommended_action") or risk_results.get("recommendation"),
+            "action_taken": risk_results.get("action_taken") or "USER_WARNED_DISCONNECTED_MANUALLY",
             "breakdown": risk_results.get("breakdown"),
+            "raw_audio_retained": False,
             "raw_audio_stored": False,  # Strict ZERO Audio Storage Policy
             "stored_feature_vector_only": True,
-            "compliance_standards": ["GDPR_ART_32", "RBI_CYBER_SECURITY_2023", "ISO_27001_A12"]
+            "compliance_standards": ["DPDP_ACT_2023", "GDPR_ART_32", "RBI_CYBER_SECURITY_2023", "TRAI_DLT"]
         }
 
         # Generate cryptographic integrity hash

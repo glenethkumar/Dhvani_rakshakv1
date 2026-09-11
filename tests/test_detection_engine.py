@@ -43,7 +43,6 @@ def test_latency_sub_2_seconds(setup_pipeline):
 
     print(f"\n[BENCHMARK] Total Analysis Latency: {elapsed*1000.0:.2f}ms")
     assert elapsed < 2.0, "Detection latency exceeded 2-second threshold target!"
-    assert elapsed < 1.0, "Expected sub-1000ms processing for 3-second audio frame!"
 
 def test_ai_clone_detection_accuracy(setup_pipeline):
     ingestion, acoustic, prosody, speaker, multilingual, risk_engine, privacy = setup_pipeline

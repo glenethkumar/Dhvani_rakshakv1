@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Waves, PhoneCall, Cpu, Eye, Award, Database, HeartPulse, ShieldCheck, Sliders, FileText, Zap, ChevronRight, Search, Shield, Radio } from 'lucide-react';
+import { Menu, X, Waves, PhoneCall, Cpu, Eye, Award, Database, HeartPulse, ShieldCheck, Sliders, FileText, Zap, ChevronRight, Search, Shield, Radio, HelpCircle } from 'lucide-react';
 import LiveMonitor from './components/LiveMonitor';
 import CallSimulator from './components/CallSimulator';
 import ExecutiveDashboard from './components/ExecutiveDashboard';
@@ -11,6 +11,8 @@ import GovVipProtection from './components/GovVipProtection';
 import BlockchainCerts from './components/BlockchainCerts';
 import BehavioralBiometrics from './components/BehavioralBiometrics';
 import TelecomGateway from './components/TelecomGateway';
+import HowItWorks from './components/HowItWorks';
+import ConsentBanner from './components/ConsentBanner';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('telecom');
@@ -21,27 +23,28 @@ export default function App() {
     {
       name: '🛡️ Voice Call Protection',
       items: [
-        { id: 'telecom', label: 'Phone Line Interceptor', icon: Radio, simpleDesc: 'Auto-scans phone calls and blocks fake AI voices.' },
-        { id: 'monitor', label: 'Live Voice Scanner', icon: Waves, simpleDesc: 'Checks live microphone audio and alerts you if a voice is fake.' },
-        { id: 'simulator', label: 'Voice Fake Simulator', icon: PhoneCall, simpleDesc: 'Test how fake voices and scam calls are detected.' },
-        { id: 'dashboard', label: 'Security Overview', icon: Cpu, simpleDesc: 'See total calls scanned, blocked scam attempts, and money saved.' }
+        { id: 'telecom', label: 'Enterprise & Call Protection', icon: Radio, simpleDesc: 'Scans in-app VoIP, PBX trunks, and speakerphone mic calls.' },
+        { id: 'howitworks', label: 'How Dhvani Rakshak Works', icon: HelpCircle, simpleDesc: 'Interactive 6-step flow showing how voice clone defense works.' },
+        { id: 'monitor', label: 'Live Mic Scanner', icon: Waves, simpleDesc: 'Checks live microphone audio and alerts you if a voice is fake.' },
+        { id: 'simulator', label: 'Scam Call Simulator', icon: PhoneCall, simpleDesc: 'Test simulated demo calls to see fraud alerts in action.' },
+        { id: 'dashboard', label: 'Security Dashboard', icon: Cpu, simpleDesc: 'Overview of calls scanned, fraud risk trends, and money saved.' }
       ]
     },
     {
       name: '🔍 Voice Analysis & Safety',
       items: [
         { id: 'xai', label: 'Why Is It Fake?', icon: Eye, simpleDesc: 'Simple explanations showing why a call was marked fake.' },
-        { id: 'gov', label: 'VIP Protection', icon: Award, simpleDesc: 'Extra safety mode for leaders, executives, and bank accounts.' },
-        { id: 'blockchain', label: 'Digital Voice Pass', icon: Database, simpleDesc: 'Creates secure voice certificates for official proof.' },
-        { id: 'behavioral', label: 'Behavior Check', icon: HeartPulse, simpleDesc: 'Checks caller stress, odd call times, and unusual habits.' }
+        { id: 'gov', label: 'VIP High Protection', icon: Award, simpleDesc: 'High-security mode for bank managers, executives, and leaders.' },
+        { id: 'blockchain', label: 'Digital Voice Pass (Future)', icon: Database, simpleDesc: 'Future roadmap feature for blockchain voice certificates.' },
+        { id: 'behavioral', label: 'Caller Behavior Check', icon: HeartPulse, simpleDesc: 'Checks caller stress, unusual call timing, and fraud habits.' }
       ]
     },
     {
       name: '⚙️ Settings & Privacy',
       items: [
-        { id: 'enrollment', label: 'Register Voice', icon: ShieldCheck, simpleDesc: 'Safely save your real voice profile without storing audio.' },
-        { id: 'policy', label: 'System Settings', icon: Sliders, simpleDesc: 'Change risk sensitivity and auto-block rules.' },
-        { id: 'audit', label: 'Safety Reports', icon: FileText, simpleDesc: 'Clear privacy reports proving 100% data safety.' }
+        { id: 'enrollment', label: 'Voice Profile Setup', icon: ShieldCheck, simpleDesc: 'Safely save your real voice profile without storing audio.' },
+        { id: 'policy', label: 'Policy & Risk Controls', icon: Sliders, simpleDesc: 'Adjust sensitivity thresholds and human-in-the-loop rules.' },
+        { id: 'audit', label: 'Privacy & Audit Logs', icon: FileText, simpleDesc: 'Review DPDP Act 2023 compliance logs with SHA-256 signatures.' }
       ]
     }
   ];
@@ -256,10 +259,14 @@ export default function App() {
         </div>
       )}
 
+      {/* DPDP Act 2023 Consent Overlay Banner */}
+      <ConsentBanner />
+
       {/* Main View Container */}
       <main style={{ flex: 1, padding: '16px', maxWidth: '1200px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '24px' }}>
 
         {activeTab === 'telecom' && <TelecomGateway />}
+        {activeTab === 'howitworks' && <HowItWorks />}
         {activeTab === 'monitor' && <LiveMonitor />}
         {activeTab === 'simulator' && <CallSimulator />}
         {activeTab === 'dashboard' && <ExecutiveDashboard />}

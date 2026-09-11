@@ -48,15 +48,24 @@ export default function BlockchainCerts() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '6px' }}>Digital Voice Pass & Blockchain Certificates</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: '700', margin: 0 }}>Digital Voice Pass & Blockchain Certificates</h2>
+            <span style={{
+              fontSize: '11px', padding: '3px 10px', borderRadius: '20px',
+              background: 'rgba(168, 85, 247, 0.15)', color: '#C084FC',
+              border: '1px solid rgba(168, 85, 247, 0.3)', fontWeight: '700'
+            }}>
+              🔮 Future Scope Roadmap Feature
+            </span>
+          </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', margin: 0 }}>
-            <strong>What it does:</strong> Creates tamper-proof digital certificates on a secure blockchain ledger so authentic voice registrations can be legally verified in court.
+            <strong>What it does:</strong> Concept for creating tamper-proof digital voice certificates on a Web3 ledger for long-term court verification.
           </p>
         </div>
-        <div style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.3)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Database size={16} /> Polygon Blockchain Verified
+        <div style={{ padding: '8px 16px', borderRadius: '20px', background: 'rgba(168, 85, 247, 0.15)', color: '#C084FC', border: '1px solid rgba(168, 85, 247, 0.3)', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Database size={16} /> Polygon Testnet (Experimental)
         </div>
       </div>
 

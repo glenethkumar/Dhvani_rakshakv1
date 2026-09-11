@@ -59,19 +59,27 @@ class ScoringFusionEngine:
         # Determine Alert Level & Recommendation
         if is_ai_voice and has_keywords:
             alert_level = "RED"
-            recommendation = "HANG_UP_AND_VERIFY_CALLBACK"
-            user_message = "🚨 HIGH RISK: AI voice + fraud keywords detected. Recommended: hang up and verify via callback."
+            recommendation = "RECOMMEND_DISCONNECT"
+            recommended_action = "RECOMMEND_DISCONNECT"
+            action_taken = "USER_WARNED_DISCONNECTED_MANUALLY"
+            user_message = "🚨 HIGH RISK: AI voice + fraud keywords detected. Recommended: disconnect call and verify via callback."
         elif is_ai_voice and not has_keywords:
             alert_level = "YELLOW"
             recommendation = "PROCEED_WITH_CAUTION"
-            user_message = "⚠️ WARNING: AI voice detected, but content appears benign."
+            recommended_action = "WARN_USER_CAUTION"
+            action_taken = "USER_NOTIFIED"
+            user_message = "⚠️ WARNING: AI synthetic voice detected. Proceed with caution."
         elif not is_ai_voice and has_keywords:
             alert_level = "YELLOW"
             recommendation = "REQUIRE_SECONDARY_OTP"
+            recommended_action = "WARN_USER_CAUTION"
+            action_taken = "USER_NOTIFIED"
             user_message = "⚠️ WARNING: Possible social engineering attempt by human caller."
         else:
             alert_level = "GREEN"
             recommendation = "ALLOW"
+            recommended_action = "ALLOW_CALL"
+            action_taken = "CALL_ALLOWED"
             user_message = "✅ AUTHENTIC REAL HUMAN VOICE: Voice identity and speech content verified."
 
         # Cap score for RED alert
@@ -82,6 +90,8 @@ class ScoringFusionEngine:
             "risk_score": final_risk,
             "alert_level": alert_level,
             "recommendation": recommendation,
+            "recommended_action": recommended_action,
+            "action_taken": action_taken,
             "user_message": user_message,
             "is_ai_voice_detected": is_ai_voice,
             "has_fraud_keywords": has_keywords,

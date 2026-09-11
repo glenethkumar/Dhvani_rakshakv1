@@ -8,13 +8,13 @@ import { API_BASE_URL } from '../utils/audioEncoder';
 
 export default function TelecomGateway() {
   const [trunkStatus, setTrunkStatus] = useState({
-    trunk_name: "Asterisk-PBX-Trunk-01 / Twilio Voice Gateway",
+    trunk_name: "Enterprise PBX Trunk Gateway (Asterisk / FreeSWITCH / Twilio SIP)",
     trunk_status: "CONNECTED",
     active_call_count: 3,
     total_calls_monitored: 42,
     supported_codecs: ["PCMU (G.711u)", "PCMA (G.711a)", "PCM16", "G.722"],
-    automated_sip_bye_enabled: true,
-    automated_transfer_enabled: true
+    auto_action_policy_enabled: false,
+    recommended_actions_enabled: true
   });
 
   const [activeCalls, setActiveCalls] = useState([
@@ -22,40 +22,40 @@ export default function TelecomGateway() {
       call_sid: "CA_9B18F203AA01",
       caller_number: "+91 98200 12345",
       dialed_number: "+91 22 6600 0000",
-      carrier: "Airtel",
+      carrier: "PBX Trunk Line",
       codec: "PCMU (G.711u)",
       status: "IN_PROGRESS",
       duration_sec: 48.2,
       cumulative_risk: 18.4,
       alert_level: "GREEN",
       detected_vocoder: "None",
-      stir_shaken: { attestation_level: "A", is_cli_spoofed: false }
+      trai_dlt: { status: "DLT Verified — Full KYC", level: "FULL_KYC", is_spoofed: false }
     },
     {
       call_sid: "CA_4E72B109DC88",
       caller_number: "+91 98111 54321",
       dialed_number: "+91 22 6600 0000",
-      carrier: "Reliance Jio",
+      carrier: "SIP Trunk",
       codec: "PCMA (G.711a)",
-      status: "DEFLECTED_TO_FRAUD_DESK",
+      status: "SUGGEST_FRAUD_DESK_TRANSFER",
       duration_sec: 62.5,
       cumulative_risk: 74.5,
       alert_level: "YELLOW",
       detected_vocoder: "OpenAI_Voice",
-      stir_shaken: { attestation_level: "B", is_cli_spoofed: false }
+      trai_dlt: { status: "DLT Verified — Partial", level: "PARTIAL", is_spoofed: false }
     },
     {
       call_sid: "CA_1A88C490EF22",
       caller_number: "+91 00000 00000",
       dialed_number: "+91 22 6600 0000",
-      carrier: "Generic_VoIP",
+      carrier: "Generic VoIP",
       codec: "PCMU (G.711u)",
-      status: "TERMINATED_BY_SIP_BYE",
+      status: "RECOMMEND_DISCONNECT",
       duration_sec: 14.1,
       cumulative_risk: 94.8,
       alert_level: "RED",
       detected_vocoder: "ElevenLabs",
-      stir_shaken: { attestation_level: "C", is_cli_spoofed: true }
+      trai_dlt: { status: "Unverified / Spoofed", level: "UNVERIFIED", is_spoofed: true }
     }
   ]);
 
