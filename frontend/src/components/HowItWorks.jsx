@@ -97,10 +97,10 @@ export default function HowItWorks() {
           <text x="440" y="40" textAnchor="middle" fill="#FFF" fontSize="12" fontWeight="bold">3A. Acoustic (WavLM)</text>
           <text x="440" y="55" textAnchor="middle" fill="#9CA3AF" fontSize="9">Deepfake Vocoder (60%)</text>
 
-          {/* Node 3B: Whisper & Keyword */}
+          {/* Node 3B: Pitch & Prosody */}
           <rect x="370" y="80" width="140" height="55" rx="10" fill="#0D1322" stroke="#EC4899" strokeWidth="2" />
-          <text x="440" y="102" textAnchor="middle" fill="#FFF" fontSize="12" fontWeight="bold">3B. STT & Keywords</text>
-          <text x="440" y="118" textAnchor="middle" fill="#9CA3AF" fontSize="9">Whisper + Gemini (40%)</text>
+          <text x="440" y="102" textAnchor="middle" fill="#FFF" fontSize="12" fontWeight="bold">3B. Pitch & Prosody</text>
+          <text x="440" y="118" textAnchor="middle" fill="#9CA3AF" fontSize="9">F0 Jitter & Vocal Cords (40%)</text>
 
           <path d="M 510 42 L 545 75" stroke="#8B5CF6" strokeWidth="2" />
           <path d="M 510 108 L 545 75" stroke="#EC4899" strokeWidth="2" />

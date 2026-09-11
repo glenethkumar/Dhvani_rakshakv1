@@ -102,44 +102,42 @@ export default function CallSimulator() {
 
   const presets = {
     genuine: {
-      name: "Genuine Human Speech (Rajesh Sharma - CEO)",
+      name: "Genuine Real Human Voice (Rajesh Sharma - CEO)",
       desc: "Authentic pitch modulation, natural vocal tract micro-jitter, respiratory breathing dynamics.",
-      risk: 28.4,
+      risk: 15.2,
       level: "GREEN",
-      intent_type: "NEUTRAL",
+      voice_type: "REAL_HUMAN_VOICE",
       speech_transcript: "Good morning, checking in on the quarterly progress report.",
       ac: 0.12, pr: 0.18, sp: 0.08
     },
-    helpful_ai: {
-      name: "Helpful AI Voice Assistant (Flight / Hospital Reminder)",
-      desc: "Synthetic AI Voice used for helpful purpose (Appointment reminder / Flight update). Content is helpful -> CALL ALLOWED.",
-      risk: 22.4,
-      level: "GREEN",
-      intent_type: "HELPFUL_ASSISTANT",
-      speech_transcript: "Hello! This is your automated customer service assistant confirming your flight schedule tomorrow at 10:00 AM.",
-      ac: 0.72, pr: 0.68, sp: 0.55
-    },
-    scam_ai: {
-      name: "Harmful Scam AI Voice Attack (OTP Phishing / Extortion)",
-      desc: "Synthetic AI Voice demanding 6-digit OTP or urgent wire transfer. Content is harmful/misleading -> CALL BLOCKED & ALERT SENT.",
+    elevenlabs_clone: {
+      name: "Synthetic AI Voice Clone (ElevenLabs Neural Vocoder)",
+      desc: "Synthetic AI Voice clone generated via ElevenLabs neural vocoder. High-frequency phase alignment anomalies detected.",
       risk: 94.8,
       level: "RED",
-      intent_type: "HARMFUL_SCAM",
-      speech_transcript: "Urgent bank security alert! Share your 6-digit OTP code immediately to avoid account block.",
+      voice_type: "AI_VOICE_CLONE",
+      speech_transcript: "Urgent security alert: voice clone sample simulating caller identity.",
       ac: 0.88, pr: 0.82, sp: 0.79
+    },
+    openai_clone: {
+      name: "Synthetic AI Voice Clone (OpenAI Voice Synthesis)",
+      desc: "Synthetic AI Voice generated via neural speech synthesis. Unnatural flat pitch contour & zero vocal cord tremor.",
+      risk: 88.5,
+      level: "RED",
+      voice_type: "AI_VOICE_CLONE",
+      speech_transcript: "Automated voice notification simulating customer interaction.",
+      ac: 0.82, pr: 0.76, sp: 0.65
     },
     spliced: {
       name: "Spliced Audio Micro-Edit Attack",
-      desc: "Hybrid attack: genuine human audio abruptly spliced with AI generated scam instructions.",
+      desc: "Hybrid voice attack: genuine human audio abruptly spliced with AI generated voice clone.",
       risk: 91.0,
       level: "RED",
-      intent_type: "HARMFUL_SCAM",
-      speech_transcript: "This is the police department. Pay court fine immediately or face digital arrest.",
+      voice_type: "AI_VOICE_CLONE",
+      speech_transcript: "Authentic human speech spliced with synthetic voice payload.",
       ac: 0.94, pr: 0.75, sp: 0.88
     }
   };
-
-
 
   const handleRunSimulation = async () => {
     setAnalyzing(true);
@@ -150,12 +148,12 @@ export default function CallSimulator() {
     try {
       if (mode === "preset") {
         const scenarioMap = {
-          scam_ai: "elevenlabs_clone",
-          helpful_ai: "openai_voice",
+          elevenlabs_clone: "elevenlabs_clone",
+          openai_clone: "openai_voice",
           spliced: "spliced_attack",
           genuine: "genuine_ceo"
         };
-        const p = presets[selectedPreset] || presets.scam_ai;
+        const p = presets[selectedPreset] || presets.elevenlabs_clone;
 
         try {
           const res = await fetch(`${API_BASE_URL}/api/v1/telecom/simulate-call`, {
@@ -174,16 +172,27 @@ export default function CallSimulator() {
             const data = await res.json();
             const chunk = data.chunk_evaluation || {};
             const alertLvl = chunk.alert_level || p.level;
+            const isAiVoice = alertLvl === 'RED' || alertLvl === 'YELLOW';
+            const riskVal = chunk.risk_score !== undefined ? chunk.risk_score : p.risk;
+            const humanAuth = Math.round((100.0 - riskVal) * 10) / 10;
             const result = {
               session_id: data.session ? data.session.call_sid : `SESS_${Math.random().toString(16).substring(2, 10).toUpperCase()}`,
               latency_ms: chunk.latency_ms || 142.0,
               input_source: `Telecom Line: ${p.name} (G.711u / ${data.session ? data.session.carrier : 'Airtel'})`,
               risk_assessment: {
-                risk_score: chunk.risk_score !== undefined ? chunk.risk_score : p.risk,
+                risk_score: riskVal,
+                ai_probability: riskVal,
+                human_authenticity: humanAuth,
                 alert_level: alertLvl,
-                recommendation: alertLvl === 'RED' ? 'BLOCK_TRANSACTION_AND_ESCALATE' : alertLvl === 'YELLOW' ? 'REQUIRE_SECONDARY_VERIFICATION' : 'ALLOW',
-                user_message: alertLvl === 'RED' ? 'HIGH RISK: AI Voice Clone Attack Blocked via Telecom SIP BYE!' : alertLvl === 'YELLOW' ? 'WARNING: Suspicious voice characteristics detected. Deflected to fraud desk.' : 'AUTHENTIC REAL HUMAN VOICE: Voice identity verified over telecom line.',
-                flagged_context_risk_factors: transferAmount >= 1000000 ? ["HIGH_VALUE_TRANSACTION (> ₹10L)", "STIR/SHAKEN_ATTESTATION_VERIFIED", "PSTN_CARRIER_VOICE_STREAM"] : ["STIR/SHAKEN_ATTESTATION_VERIFIED"]
+                voice_type: isAiVoice ? "AI_VOICE_CLONE" : "REAL_HUMAN_VOICE",
+                voice_label: isAiVoice ? "Fake AI Voice Clone" : "Real Human Voice",
+                recommendation: alertLvl === 'RED' ? 'RECOMMEND_DISCONNECT' : alertLvl === 'YELLOW' ? 'PROCEED_WITH_CAUTION' : 'ALLOW',
+                user_message: isAiVoice
+                  ? `🚨 FAKE AI VOICE CLONE DETECTED (${riskVal.toFixed(1)}% AI Probability). Recommended: disconnect call.`
+                  : `✅ REAL HUMAN VOICE DETECTED (${humanAuth.toFixed(1)}% Human Authenticity). Voice verified.`,
+                flagged_context_risk_factors: isAiVoice
+                  ? ["AI-generated synthetic vocoder artifacts detected", "Unnatural phase continuity & pitch micro-jitter anomaly identified"]
+                  : ["Natural human vocal cord vibration & acoustic phonemes verified", "Natural fundamental frequency (F0) pitch dynamics confirmed"]
               },
               acoustic_analysis: {
                 acoustic_anomaly_score: Math.round((chunk.neural_deepfake_prob || p.ac) * 100) / 100,
@@ -211,8 +220,8 @@ export default function CallSimulator() {
         }
 
         // Fallback simulation if offline
-        const isHelpfulAI = p.intent_type === 'HELPFUL_ASSISTANT';
-        const isHarmfulAI = p.intent_type === 'HARMFUL_SCAM';
+        const isAiVoice = p.level === 'RED' || p.voice_type === 'AI_VOICE_CLONE';
+        const humanAuth = Math.round((100.0 - p.risk) * 10) / 10;
         
         const result = {
           session_id: `SESS_${Math.random().toString(16).substring(2, 10).toUpperCase()}`,
@@ -220,14 +229,18 @@ export default function CallSimulator() {
           input_source: `Preset Scenario: ${p.name}`,
           risk_assessment: {
             risk_score: p.risk,
+            ai_probability: p.risk,
+            human_authenticity: humanAuth,
             alert_level: p.level,
-            recommendation: p.level === 'RED' ? 'BLOCK_TRANSACTION_AND_ESCALATE' : 'ALLOW',
-            user_message: isHelpfulAI 
-              ? '✅ HELPFUL AI ASSISTANT DETECTED: Spoken content is helpful (Customer / Flight Reminder). Call allowed!'
-              : isHarmfulAI 
-              ? '🚨 HARMFUL SCAM AI VOICE DETECTED: Phishing / OTP Fraud Intent Detected! Call blocked and intercepted.'
-              : 'AUTHENTIC REAL HUMAN VOICE: Natural pitch & vocal tract formants verified.',
-            flagged_context_risk_factors: isHarmfulAI ? ["HARMFUL_SCAM_INTENT_DETECTED", "OTP_PHISHING_PATTERN"] : isHelpfulAI ? ["HELPFUL_SERVICE_ASSISTANT"] : []
+            voice_type: isAiVoice ? "AI_VOICE_CLONE" : "REAL_HUMAN_VOICE",
+            voice_label: isAiVoice ? "Fake AI Voice Clone" : "Real Human Voice",
+            recommendation: isAiVoice ? 'RECOMMEND_DISCONNECT' : 'ALLOW',
+            user_message: isAiVoice
+              ? `🚨 FAKE AI VOICE CLONE DETECTED (${p.risk}% AI Probability). Recommended: disconnect call.`
+              : `✅ REAL HUMAN VOICE DETECTED (${humanAuth.toFixed(1)}% Human Authenticity). Voice verified.`,
+            flagged_context_risk_factors: isAiVoice
+              ? ["AI-generated synthetic vocoder artifacts detected", "Unnatural phase continuity & pitch micro-jitter anomaly identified"]
+              : ["Natural human vocal cord vibration & acoustic phonemes verified", "Natural fundamental frequency (F0) pitch dynamics confirmed"]
           },
           acoustic_analysis: { acoustic_anomaly_score: p.ac, mfcc_variance: p.level === 'RED' ? 4.2 : 14.8, splicing_discontinuity: selectedPreset === 'spliced' ? 5.8 : 0.4 },
           prosody_analysis: { calibrated_prosody_score: p.pr, jitter_percent: p.level === 'RED' ? 0.04 : 0.42, std_f0_hz: p.level === 'RED' ? 2.1 : 24.5 },

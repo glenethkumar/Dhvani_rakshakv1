@@ -173,7 +173,7 @@ export default function PolicyConfig() {
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-              <span style={{ fontWeight: '600' }}>Behavioral NLU (Gemini Content Intent)</span>
+              <span style={{ fontWeight: '600' }}>Pitch Micro-Jitter & Vocal Cord Dynamics</span>
               <span style={{ fontWeight: '700', color: '#F59E0B' }}>{prosodyWeight}%</span>
             </div>
             <input
@@ -181,12 +181,12 @@ export default function PolicyConfig() {
               onChange={(e) => setProsodyWeight(Number(e.target.value))}
               style={{ width: '100%', accentColor: '#F59E0B' }}
             />
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Analyzes speech intent (Helpful customer service vs Harmful scam / extortion).</p>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Analyzes pitch micro-tremor, vocal tract formant stability, and physiological breathing.</p>
           </div>
 
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-              <span style={{ fontWeight: '600' }}>STT Fraud Keyword Scanner</span>
+              <span style={{ fontWeight: '600' }}>ECAPA-TDNN Speaker Verification</span>
               <span style={{ fontWeight: '700', color: '#EF4444' }}>{speakerWeight}%</span>
             </div>
             <input
@@ -194,7 +194,7 @@ export default function PolicyConfig() {
               onChange={(e) => setSpeakerWeight(Number(e.target.value))}
               style={{ width: '100%', accentColor: '#EF4444' }}
             />
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Scans transcript for high-risk words ('transfer', 'OTP', 'urgent', 'CEO').</p>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Compares 192-dim speaker embeddings against registered voice profiles.</p>
           </div>
         </div>
 
