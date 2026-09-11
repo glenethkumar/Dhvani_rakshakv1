@@ -166,26 +166,23 @@ class AcousticAnalyzer:
         neural_prob = neural_res["deepfake_probability"]
         neural_sigs = neural_res["vocoder_fingerprints"]
 
-        # Blend signatures
-        elevenlabs_sig = round(float(0.4 * dsp_elevenlabs + 0.6 * neural_sigs.get("ElevenLabs", dsp_elevenlabs)), 3)
-        openai_sig = round(float(0.4 * dsp_openai + 0.6 * neural_sigs.get("OpenAI_Voice", dsp_openai)), 3)
-        google_sig = round(float(0.5 * dsp_google + 0.5 * neural_sigs.get("Google_TTS", dsp_google)), 3)
+        # DSP anomaly score calibrated for human vs AI
+        # Normal human speech has mfcc_std around 1.0 - 4.0. Synthetic audio has flat mfcc_std < 0.45
+        dsp_anomaly = 0.0
+        if mfcc_std < 0.45:
+            dsp_anomaly += (0.45 - mfcc_std) * 1.5
+        if spec_feats["phase_smoothness_variance"] < 1.2:
+            dsp_anomaly += 0.25
+        if spec_feats["high_freq_energy_ratio"] > 0.08:
+            dsp_anomaly += 0.35
 
-        tts_max_sig = max(elevenlabs_sig, openai_sig, google_sig)
+        dsp_anomaly = float(np.clip(dsp_anomaly, 0.05, 0.95))
 
-        # Classical DSP component
-        dsp_anomaly = (
-            (1.0 - min(1.0, mfcc_std / 15.0)) * 0.25 +
-            (1.0 - min(1.0, spec_feats["phase_smoothness_variance"] / 2.5)) * 0.25 +
-            tts_max_sig * 0.35 +
-            min(1.0, max_discontinuity / 5.0) * 0.15
-        )
-
-        # Hybrid Ensemble Score: 40% Classical DSP + 60% AASIST Neural Graph Network
-        hybrid_acoustic_anomaly = float(0.40 * dsp_anomaly + 0.60 * neural_prob)
+        # Ensemble Score: 30% DSP + 70% AASIST Neural Network
+        hybrid_acoustic_anomaly = float(0.30 * dsp_anomaly + 0.70 * neural_prob)
 
         return {
-            "acoustic_anomaly_score": round(float(np.clip(hybrid_acoustic_anomaly, 0.0, 1.0)), 4),
+            "acoustic_anomaly_score": round(float(np.clip(hybrid_acoustic_anomaly, 0.05, 0.98)), 4),
             "neural_deepfake_probability": round(neural_prob, 4),
             "neural_model": neural_res["model_architecture"],
             "inference_engine": neural_res["inference_engine"],
@@ -193,9 +190,6 @@ class AcousticAnalyzer:
             "delta_variance": round(delta_std, 3),
             "splicing_discontinuity": round(max_discontinuity, 3),
             "spectral_features": spec_feats,
-            "tts_signatures": {
-                "ElevenLabs": elevenlabs_sig,
-                "OpenAI_Voice": openai_sig,
-                "Google_TTS": google_sig
-            }
+            "tts_signatures": neural_sigs
         }
+

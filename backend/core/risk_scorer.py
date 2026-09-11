@@ -55,9 +55,10 @@ class RiskScoringEngine:
 
         neural_prob = acoustic_res.get("neural_deepfake_probability", 0.0)
         splicing_disc = acoustic_res.get("splicing_discontinuity", 0.0)
-        if neural_prob >= 0.60 or sp_score >= 0.60 or (splicing_disc >= 1.2 and sp_score >= 0.25):
+        if neural_prob >= 0.70 or (splicing_disc >= 4.5 and sp_score >= 0.60):
             attack_severity = max(neural_prob, sp_score)
             raw_ensemble = max(raw_ensemble, 0.55 + 0.35 * attack_severity)
+
 
         final_anomaly = min(1.0, raw_ensemble * contextual_multiplier)
         ai_probability = round(final_anomaly * 100.0, 1)

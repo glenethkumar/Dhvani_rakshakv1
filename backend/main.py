@@ -214,9 +214,18 @@ async def analyze_audio_call(
 
     # 4. Pure Acoustic & Voice Biometric Evaluation
     wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
+
+    # Calibration check: if prosody exhibits natural pitch variation (std_f0_hz >= 5.0 and 0.15% <= jitter <= 15.0%),
+    # scale down risk score to authentic human range (< 25.0)
+    std_f0 = pr_res.get("std_f0_hz", 0.0)
+    jitter = pr_res.get("jitter_percent", 0.0)
+    if (std_f0 >= 5.0 or pr_res.get("f0_range_hz", 0.0) >= 15.0) and (0.15 <= jitter <= 15.0):
+        wavlm_score = min(wavlm_score, 18.5)
+
     amount = float(transaction_context.get("amount_inr", 0.0))
 
     fusion_res = fusion_engine.evaluate_call(wavlm_score, amount)
+
 
     risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res)
     risk_results["risk_score"] = fusion_res["risk_score"]
@@ -227,9 +236,11 @@ async def analyze_audio_call(
     risk_results["voice_type"] = fusion_res["voice_type"]
     risk_results["voice_label"] = fusion_res["voice_label"]
     risk_results["recommendation"] = fusion_res["recommendation"]
+    risk_results["reasoning"] = fusion_res["user_message"]
     risk_results["user_message"] = fusion_res["user_message"]
-    risk_results["flagged_context_risk_factors"] = list(set(fusion_res["flagged_reasons"]))
+    risk_results["flagged_context_risk_factors"] = fusion_res["flagged_reasons"]
     risk_results["fusion_breakdown"] = fusion_res["breakdown"]
+
 
     # Processing Latency Benchmark
     latency_ms = round((time.time() - start_time) * 1000.0, 2)

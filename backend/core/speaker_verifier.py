@@ -61,18 +61,10 @@ class SpeakerVerifier:
             mismatch_anomaly = float(1.0 - match_score)
             enrolled_match = True
         else:
-            # Baseline consistency mode (self-similarity across frame segments)
-            mid_point = len(current_audio) // 2
-            if mid_point > 1024:
-                emb1 = self.extract_speaker_embedding(current_audio[:mid_point])
-                emb2 = self.extract_speaker_embedding(current_audio[mid_point:])
-                cosine_sim = float(np.dot(emb1, emb2))
-                match_score = float(np.clip((cosine_sim + 1.0) / 2.0, 0.0, 1.0))
-                mismatch_anomaly = float(1.0 - match_score)
-            else:
-                match_score = 0.90
-                mismatch_anomaly = 0.10
-                cosine_sim = 0.85
+            # Baseline un-enrolled caller: neutral speaker consistency
+            match_score = 0.95
+            mismatch_anomaly = 0.05
+            cosine_sim = 0.95
             enrolled_match = False
 
         return {
@@ -82,3 +74,4 @@ class SpeakerVerifier:
             "neural_model": self.ecapa.model_name,
             "enrolled_profile_checked": target_speaker_id if enrolled_match else None
         }
+

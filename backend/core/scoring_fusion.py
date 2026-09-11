@@ -41,7 +41,7 @@ class ScoringFusionEngine:
             reasons.append(f"AI-generated synthetic vocoder artifacts detected (AI Confidence: {final_risk:.1f}%)")
             reasons.append("Unnatural phase continuity & pitch micro-jitter anomaly identified")
             voice_type = "AI_VOICE_CLONE"
-            voice_label = "Fake AI Voice Clone"
+            voice_label = "Synthetic (AI Clone)"
             alert_level = "RED" if final_risk >= 70.0 else "YELLOW"
             recommendation = "RECOMMEND_DISCONNECT" if final_risk >= 70.0 else "PROCEED_WITH_CAUTION"
             recommended_action = "RECOMMEND_DISCONNECT" if final_risk >= 70.0 else "WARN_USER_CAUTION"
@@ -51,12 +51,13 @@ class ScoringFusionEngine:
             reasons.append(f"Natural human vocal cord vibration & acoustic phonemes verified (Human Authenticity: {human_authenticity:.1f}%)")
             reasons.append("Natural fundamental frequency (F0) pitch dynamics confirmed")
             voice_type = "REAL_HUMAN_VOICE"
-            voice_label = "Real Human Voice"
+            voice_label = "Organic (Human)"
             alert_level = "GREEN"
             recommendation = "ALLOW"
             recommended_action = "ALLOW_CALL"
             action_taken = "CALL_ALLOWED"
             user_message = f"✅ REAL HUMAN VOICE DETECTED ({human_authenticity:.1f}% Human Authenticity). Voice verified."
+
 
         # Cap score for RED alert
         if alert_level == "RED":

@@ -144,24 +144,25 @@ class ProsodyAnalyzer:
         rhythm_stats = self.analyze_rhythm_pauses(audio)
 
         # Prosodic Anomaly Score calculation
-        # Robotic pitch flatness (std_f0 < 8Hz) OR unnatural jitter (<0.1% or >2.5%) -> High anomaly
-        duration = len(audio) / self.sample_rate
-        if duration < 1.0 or len(voiced_f0) < 12:
-            pitch_flatness_risk = 0.10
+        # Robotic pitch flatness (std_f0 < 4.0Hz) or zero jitter (< 0.08%) -> Synthetic AI Voice
+        # Real human voice naturally has std_f0 >= 5.0Hz and jitter between 0.15% and 12.0%
+        if std_f0 < 4.0:
+            pitch_flatness_risk = float(np.clip((4.0 - std_f0) / 4.0, 0.0, 1.0))
         else:
-            pitch_flatness_risk = float(np.clip(1.0 - std_f0 / 25.0, 0.0, 1.0))
-        jitter_anomaly = float(1.0 if jitter < 0.12 or jitter > 2.2 else 0.0)
-        shimmer_anomaly = float(1.0 if shimmer < 0.08 or shimmer > 1.8 else 0.0)
+            pitch_flatness_risk = 0.0
+
+        jitter_anomaly = float(1.0 if jitter < 0.08 or jitter > 15.0 else 0.0)
+        shimmer_anomaly = float(1.0 if shimmer < 0.05 or shimmer > 5.0 else 0.0)
 
         prosody_anomaly_score = (
-            pitch_flatness_risk * 0.40 +
+            pitch_flatness_risk * 0.45 +
             jitter_anomaly * 0.25 +
-            shimmer_anomaly * 0.20 +
+            shimmer_anomaly * 0.15 +
             rhythm_stats["pause_regularity"] * 0.15
         )
 
         return {
-            "prosody_anomaly_score": round(float(np.clip(prosody_anomaly_score, 0.0, 1.0)), 4),
+            "prosody_anomaly_score": round(float(np.clip(prosody_anomaly_score, 0.02, 0.95)), 4),
             "mean_f0_hz": round(mean_f0, 1),
             "std_f0_hz": round(std_f0, 1),
             "f0_range_hz": round(f0_range, 1),
@@ -169,3 +170,4 @@ class ProsodyAnalyzer:
             "shimmer_db": shimmer,
             "rhythm_stats": rhythm_stats
         }
+
