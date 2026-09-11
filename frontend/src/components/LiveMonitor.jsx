@@ -89,16 +89,31 @@ export default function LiveMonitor() {
       analyser.connect(processor);
       processor.connect(audioCtx.destination);
 
-      // Open WebSocket connection
-      const wsUrl = `${WS_BASE_URL.replace(/^http/, 'ws')}/ws/live-stream`;
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+      // Ping backend health to wake up Render free tier server if asleep
+      try {
+        await fetch(`${API_BASE_URL}/api/v1/health`).catch(() => {});
+      } catch (e) {}
 
+      // Resolve primary WebSocket URL
+      let wsUrl = WS_BASE_URL.startsWith('ws') 
+        ? `${WS_BASE_URL}/ws/live-stream`
+        : `${WS_BASE_URL.replace(/^http/, 'ws')}/ws/live-stream`;
+
+      let ws = null;
+      try {
+        ws = new WebSocket(wsUrl);
+      } catch (err) {
+        // Fallback to local WS if primary fails
+        ws = new WebSocket('ws://localhost:8000/ws/live-stream');
+      }
+
+      wsRef.current = ws;
       ws.binaryType = 'arraybuffer';
 
       ws.onopen = () => {
         setWsConnected(true);
         setIsStreaming(true);
+        setStreamError(null);
       };
 
       ws.onmessage = (event) => {
@@ -117,7 +132,6 @@ export default function LiveMonitor() {
               prosodyAnomaly: payload.prosody_anomaly || 0.1
             }));
 
-            // If score is alarming, push to top of log
             if (payload.risk_score >= 60) {
               const nowStr = new Date().toTimeString().split(' ')[0];
               setCallLogs(prev => [
@@ -133,13 +147,29 @@ export default function LiveMonitor() {
               ]);
             }
           }
-        } catch (e) {
-          // ignore non-json
-        }
+        } catch (e) {}
       };
 
       ws.onerror = () => {
-        setStreamError("WebSocket connection failed. Falling back to local audio visualizer.");
+        // If primary remote fails, attempt local fallback
+        if (!wsUrl.includes('localhost')) {
+          try {
+            const localWs = new WebSocket('ws://localhost:8000/ws/live-stream');
+            localWs.binaryType = 'arraybuffer';
+            localWs.onopen = () => {
+              wsRef.current = localWs;
+              setWsConnected(true);
+              setIsStreaming(true);
+              setStreamError(null);
+            };
+            localWs.onerror = () => {
+              setStreamError("Remote server sleeping & Local backend not detected. (Render free tier wakes in ~30s, or run local backend via 'python backend/main.py').");
+              setWsConnected(false);
+            };
+            return;
+          } catch (ex) {}
+        }
+        setStreamError("WebSocket connection pending. Render server is waking up (~30s cold start) or run locally on http://localhost:5173.");
         setWsConnected(false);
       };
 
@@ -149,13 +179,14 @@ export default function LiveMonitor() {
 
       // Stream chunks every buffer process
       processor.onaudioprocess = (e) => {
-        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        const activeWs = wsRef.current || ws;
+        if (!activeWs || activeWs.readyState !== WebSocket.OPEN) return;
         const inputData = e.inputBuffer.getChannelData(0);
         const wavBlob = encodeWAV(inputData, 16000);
 
         wavBlob.arrayBuffer().then(buf => {
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(buf);
+          if (activeWs && activeWs.readyState === WebSocket.OPEN) {
+            activeWs.send(buf);
           }
         });
       };
