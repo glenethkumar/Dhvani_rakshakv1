@@ -67,20 +67,21 @@ class AudioIngestionPipeline:
         if len(audio) == 0:
             return audio
 
-        # Peak normalization if voice signal is present (max_amp >= 0.0008)
+        # Peak normalization only if real voice signal is present (max_amp >= 0.015)
+        # Avoids amplifying quiet room background noise / mic hiss
         max_amp = float(np.max(np.abs(audio)))
-        if max_amp >= 0.0008:
+        if max_amp >= 0.015:
             audio = audio / max_amp * 0.95
 
         return audio
 
-    def is_speech_active(self, audio: np.ndarray, energy_threshold: float = 0.0001) -> bool:
+    def is_speech_active(self, audio: np.ndarray, energy_threshold: float = 0.002) -> bool:
         """Check if incoming audio chunk contains active human/AI speech or background silence."""
         if len(audio) == 0:
             return False
         max_amp = float(np.max(np.abs(audio)))
         rms_energy = float(np.sqrt(np.mean(audio ** 2)))
-        return max_amp >= 0.0008 or rms_energy >= energy_threshold
+        return max_amp >= 0.015 and rms_energy >= energy_threshold
 
 
 

@@ -56,13 +56,14 @@ class WebSocketStreamHandler:
                 # 2. VAD Silence Check on current chunk
                 if not self.ingestion.is_speech_active(chunk_audio):
                     latency_ms = round((time.time() - start_time) * 1000.0, 2)
-                    current_risk = self.session_ema_scores.get(session_id, 20.0)
+                    self.session_ema_scores[session_id] = 0.0
+                    self.session_buffers[session_id] = np.array([], dtype=np.float32)
                     response_payload = {
                         "session_id": session_id,
                         "latency_ms": latency_ms,
-                        "risk_score": round(current_risk, 1),
-                        "authenticity_score": round(max(0.0, 100.0 - current_risk), 1),
-                        "risk_level": "Low" if current_risk < 40 else ("Medium" if current_risk < 70 else "High"),
+                        "risk_score": 0.0,
+                        "authenticity_score": 100.0,
+                        "risk_level": "Low",
                         "alert_level": "WAITING",
                         "recommendation": "WAIT_FOR_SPEECH",
                         "user_message": "🎧 Listening for caller voice... (Waiting for speech)",
