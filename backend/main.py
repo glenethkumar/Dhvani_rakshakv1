@@ -8,6 +8,7 @@ import json
 import uuid
 import sys
 import os
+import numpy as np
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -348,14 +349,19 @@ def analyze_behavioral_profile(typing_cps: float = Form(4.2), mouse_jitter: floa
         "is_geo_anomaly": True
     })
 
+ws_session_buffers = {}
+ws_session_ema_scores = {}
+
 @app.websocket("/ws/live-stream")
 async def websocket_live_audio_stream(websocket: WebSocket):
     """
     Sub-second WebSockets endpoint for streaming audio chunk analysis.
-    Clients send raw PCM or JSON chunk payloads, server responds with live risk updates.
+    Uses temporal rolling audio buffer (up to 2.0s) and EMA risk score smoothing.
     """
     await websocket.accept()
     session_id = f"WS_{uuid.uuid4().hex[:8].upper()}"
+    ws_session_buffers[session_id] = np.array([], dtype=np.float32)
+    ws_session_ema_scores[session_id] = 20.0  # Baseline safe human initialization
 
     try:
         while True:
@@ -364,16 +370,18 @@ async def websocket_live_audio_stream(websocket: WebSocket):
                 continue
 
             start_t = time.time()
-            audio, sr = ingestion.load_wav_bytes(data)
+            chunk_audio, sr = ingestion.load_wav_bytes(data)
 
-            if not ingestion.is_speech_active(audio):
+            # VAD Silence Check on current chunk
+            if not ingestion.is_speech_active(chunk_audio):
                 latency_ms = round((time.time() - start_t) * 1000.0, 2)
+                current_risk = ws_session_ema_scores.get(session_id, 20.0)
                 response_payload = {
                     "session_id": session_id,
                     "latency_ms": latency_ms,
-                    "risk_score": 0.0,
-                    "authenticity_score": 100.0,
-                    "risk_level": "Low",
+                    "risk_score": round(current_risk, 1),
+                    "authenticity_score": round(max(0.0, 100.0 - current_risk), 1),
+                    "risk_level": "Low" if current_risk < 40 else ("Medium" if current_risk < 70 else "High"),
                     "alert_level": "WAITING",
                     "recommendation": "WAIT_FOR_SPEECH",
                     "tts_signatures": {"ElevenLabs": 0.0, "OpenAI_Voice": 0.0},
@@ -385,25 +393,56 @@ async def websocket_live_audio_stream(websocket: WebSocket):
                 await websocket.send_json(response_payload)
                 continue
 
-            audio = ingestion.preprocess(audio, sr)
+            chunk_audio = ingestion.preprocess(chunk_audio, sr)
 
-            ac_res = acoustic.detect_tts_artifacts(audio)
-            pr_res = prosody.analyze_prosody(audio)
+            # Rolling buffer accumulation (keep up to 2.0s = 32,000 samples at 16kHz)
+            buf = ws_session_buffers.get(session_id, np.array([], dtype=np.float32))
+            buf = np.concatenate([buf, chunk_audio])
+            max_samples = int(16000 * 2.0)
+            if len(buf) > max_samples:
+                buf = buf[-max_samples:]
+            ws_session_buffers[session_id] = buf
+
+            # Feature extraction over rolling buffer
+            ac_res = acoustic.detect_tts_artifacts(buf)
+            pr_res = prosody.analyze_prosody(buf)
             pr_res = multilingual.adapt_prosodic_scores(pr_res, "en-IN")
-            sp_res = speaker.verify_speaker(audio)
-            risk_res = risk_engine.calculate_risk(ac_res, pr_res, sp_res)
+            sp_res = speaker.verify_speaker(buf)
+
+            # Score Fusion & EMA Risk Smoothing
+            wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
+            fusion_res = fusion_engine.evaluate_call(wavlm_score)
+            raw_risk = fusion_res["risk_score"]
+
+            prev_risk = ws_session_ema_scores.get(session_id, raw_risk)
+            smoothed_risk = round(0.35 * raw_risk + 0.65 * prev_risk, 1)
+            ws_session_ema_scores[session_id] = smoothed_risk
+            smoothed_auth = round(max(0.0, 100.0 - smoothed_risk), 1)
+
+            if smoothed_risk >= 70.0:
+                alert_lvl = "RED"
+                risk_lvl = "High"
+                recom = "BLOCK_AI_CLONE_TRANSFER"
+            elif smoothed_risk >= 40.0:
+                alert_lvl = "YELLOW"
+                risk_lvl = "Medium"
+                recom = "PROCEED_WITH_CAUTION"
+            else:
+                alert_lvl = "GREEN"
+                risk_lvl = "Low"
+                recom = "ALLOW"
 
             latency_ms = round((time.time() - start_t) * 1000.0, 2)
-            privacy.enforce_zero_raw_audio_policy(audio)
+            privacy.enforce_zero_raw_audio_policy(chunk_audio)
 
             response_payload = {
                 "session_id": session_id,
                 "latency_ms": latency_ms,
-                "risk_score": risk_res["risk_score"],
-                "authenticity_score": risk_res["authenticity_score"],
-                "risk_level": risk_res["risk_level"],
-                "alert_level": risk_res["alert_level"],
-                "recommendation": risk_res["recommendation"],
+                "risk_score": smoothed_risk,
+                "authenticity_score": smoothed_auth,
+                "risk_level": risk_lvl,
+                "alert_level": alert_lvl,
+                "recommendation": recom,
                 "tts_signatures": ac_res["tts_signatures"],
                 "acoustic_anomaly": ac_res["acoustic_anomaly_score"],
                 "prosody_anomaly": pr_res["calibrated_prosody_score"]
@@ -411,7 +450,8 @@ async def websocket_live_audio_stream(websocket: WebSocket):
 
             await websocket.send_json(response_payload)
     except WebSocketDisconnect:
-        pass
+        ws_session_buffers.pop(session_id, None)
+        ws_session_ema_scores.pop(session_id, None)
     except Exception as e:
         print(f"WebSocket Error: {e}")
 

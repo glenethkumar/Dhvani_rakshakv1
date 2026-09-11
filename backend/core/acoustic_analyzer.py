@@ -154,8 +154,11 @@ class AcousticAnalyzer:
             max_discontinuity = 0.0
 
         # Classical signature probability heuristic
+        duration = len(audio) / self.sample_rate
         dsp_elevenlabs = float(np.clip(1.0 - spec_feats["high_freq_energy_ratio"] * 30.0, 0.0, 1.0)) * (1.0 if spec_feats["phase_smoothness_variance"] < 2.0 else 0.5)
         dsp_openai = float(np.clip(1.0 - mfcc_std * 0.20, 0.0, 1.0))
+        if duration < 1.0:
+            dsp_openai = min(dsp_openai, 0.20)
         dsp_google = float(np.clip(spec_feats["spectral_flatness"] * 20.0, 0.0, 1.0))
 
         # Run AASIST Deep Neural Network Inference

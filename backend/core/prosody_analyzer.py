@@ -145,7 +145,11 @@ class ProsodyAnalyzer:
 
         # Prosodic Anomaly Score calculation
         # Robotic pitch flatness (std_f0 < 8Hz) OR unnatural jitter (<0.1% or >2.5%) -> High anomaly
-        pitch_flatness_risk = float(np.clip(1.0 - std_f0 / 25.0, 0.0, 1.0))
+        duration = len(audio) / self.sample_rate
+        if duration < 1.0 or len(voiced_f0) < 12:
+            pitch_flatness_risk = 0.10
+        else:
+            pitch_flatness_risk = float(np.clip(1.0 - std_f0 / 25.0, 0.0, 1.0))
         jitter_anomaly = float(1.0 if jitter < 0.12 or jitter > 2.2 else 0.0)
         shimmer_anomaly = float(1.0 if shimmer < 0.08 or shimmer > 1.8 else 0.0)
 

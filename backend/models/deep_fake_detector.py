@@ -155,17 +155,27 @@ class DeepFakeDetector:
 
         # 4. Synthesizer & Vocoder Anomaly Accumulation
         spoof_evidence = 0.0
+        duration = len(audio) / self.sample_rate
 
         # Characteristic neural vocoder spectral smoothing (ElevenLabs, HiFi-GAN, WaveGlow, XTTS)
         if raw_lfcc_std < 1.15:
-            spoof_evidence += (1.15 - raw_lfcc_std) * 2.8
+            if duration < 1.2 and phase_var >= 2.0:
+                # Normal human short phoneme frame (vowel/consonant in short audio chunk)
+                pass
+            elif duration < 1.2:
+                spoof_evidence += (1.15 - raw_lfcc_std) * 1.0 * duration
+            else:
+                spoof_evidence += (1.15 - raw_lfcc_std) * 2.8
         elif raw_lfcc_std > 2.10:
             # Concatenation / splicing jumps
             spoof_evidence += (raw_lfcc_std - 2.10) * 1.0
 
         # Unnatural phase regularity in synthetic vocoders
         if phase_var < 3.8:
-            spoof_evidence += (3.8 - phase_var) * 0.35
+            if duration < 1.2:
+                spoof_evidence += max(0.0, (3.8 - phase_var) * 0.15)
+            else:
+                spoof_evidence += (3.8 - phase_var) * 0.35
 
         # Splicing jump detection
         if max_jump > 0.85:
