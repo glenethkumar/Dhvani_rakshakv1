@@ -95,8 +95,8 @@ function resolveBackendUrls() {
   // 2. Production Vercel / Render deployment
   if (hostname.includes('vercel.app') || hostname.includes('onrender.com') || hostname.includes('github.io')) {
     return {
-      api: 'https://dhvani-rakshak-backend.onrender.com',
-      ws: 'wss://dhvani-rakshak-backend.onrender.com'
+      api: import.meta.env.VITE_API_URL || 'https://dhvani-rakshak-backend.onrender.com',
+      ws: import.meta.env.VITE_WS_URL || 'wss://dhvani-rakshak-backend.onrender.com'
     };
   }
 
@@ -108,10 +108,10 @@ function resolveBackendUrls() {
     };
   }
 
-  // 4. Default Localhost
+  // 4. Default Localhost Development
   return {
-    api: 'https://dhvani-rakshak-backend.onrender.com',
-    ws: 'wss://dhvani-rakshak-backend.onrender.com'
+    api: 'http://localhost:8000',
+    ws: 'ws://localhost:8000'
   };
 }
 
