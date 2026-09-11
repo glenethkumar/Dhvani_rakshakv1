@@ -642,8 +642,18 @@ def simulate_inbound_telecom_call(req: TelecomSimulationRequest):
 
 
 # ---------------------------------------------------------------------------
-# Root Endpoints Aliases (POST /analyze, WS /stream, POST /enroll, POST /verify, GET /health)
+# Root Endpoints Aliases (POST /analyze, WS /stream, POST /enroll, POST /verify, GET /health, GET /)
 # ---------------------------------------------------------------------------
+
+@app.get("/")
+def root_index():
+    return {
+        "status": "ONLINE",
+        "system": "Dhvani Rakshak AI Voice Clone Defense System",
+        "api_docs": "/docs",
+        "health_check": "/api/v1/health",
+        "version": "1.0.0"
+    }
 
 @app.get("/health")
 def root_health_check():
