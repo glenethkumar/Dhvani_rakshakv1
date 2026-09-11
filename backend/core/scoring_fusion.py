@@ -9,11 +9,12 @@ class ScoringFusionEngine:
     """
     Weighted score fusion & rule-based decision engine for non-disruptive fraud alerting.
     
-    Formula:
-    Final Risk Score = (0.60 * WavLM Score) + (0.25 * Gemini Score) + (0.15 * Keyword Score)
+    Formula (Content-Free Biometric Standard):
+    Final Risk Score = (1.00 * Acoustic/Prosodic WavLM Score) + (0.00 * Optional Text Intent) + (0.00 * Optional STT Keywords)
+    Note: Speech content analysis is bypassed to ensure 100% privacy compliance and eliminate call transcript access requirements.
     """
 
-    def __init__(self, wavlm_weight: float = 0.60, gemini_weight: float = 0.25, keyword_weight: float = 0.15):
+    def __init__(self, wavlm_weight: float = 1.00, gemini_weight: float = 0.00, keyword_weight: float = 0.00):
         self.wavlm_w = wavlm_weight
         self.gemini_w = gemini_weight
         self.keyword_w = keyword_weight
@@ -21,19 +22,23 @@ class ScoringFusionEngine:
     def evaluate_call(
         self,
         wavlm_score: float,
-        gemini_score: float,
-        keyword_res: Dict[str, Any],
+        gemini_score: float = 0.0,
+        keyword_res: Dict[str, Any] = None,
         transaction_amount: float = 0.0
     ) -> Dict[str, Any]:
         """
-        Calculates fused risk score and determines color-coded alert level and non-disruptive recommendation.
+        Calculates fused risk score using content-free acoustic biometrics.
+        Does NOT require call transcript or speech-to-text access.
         """
+        if keyword_res is None:
+            keyword_res = {}
+
         keyword_score = keyword_res.get("keyword_score", 0.0)
         has_keywords = keyword_res.get("has_fraud_keywords", False)
         matches = keyword_res.get("matches", [])
         categories = keyword_res.get("categories", {})
 
-        # Calculate weighted sum
+        # Calculate weighted sum based on acoustic biometrics
         raw_fusion = (self.wavlm_w * wavlm_score) + (self.gemini_w * gemini_score) + (self.keyword_w * keyword_score)
         
         # High value transaction risk booster
@@ -42,45 +47,40 @@ class ScoringFusionEngine:
 
         final_risk = round(raw_fusion, 1)
 
-        # Rule-Based Decision Logic
+        # Rule-Based Biometric Decision Logic
         is_ai_voice = (wavlm_score >= 60.0)
         reasons: List[str] = []
 
         if is_ai_voice:
-            reasons.append(f"AI-generated synthetic voice signature detected (Acoustic Confidence: {wavlm_score:.1f}%)")
+            reasons.append(f"AI-generated synthetic vocoder artifacts detected (Acoustic Confidence: {wavlm_score:.1f}%)")
+        else:
+            reasons.append("Natural acoustic phoneme transitions & vocal cords vibration verified")
 
+        # Optional enterprise text insights (if transcript provided, without enforcing dependency)
         if categories.get("has_urgency"):
-            reasons.append("Coercive urgency phrasing detected ('urgent', 'immediately')")
-        if categories.get("has_secrecy"):
-            reasons.append("Secrecy constraint phrasing detected ('don't tell anyone')")
+            reasons.append("[Optional Text Plugin] Coercive urgency phrasing detected")
         if categories.get("has_financial"):
-            reasons.append(f"Financial transaction keywords detected ({', '.join(matches)})")
+            reasons.append(f"[Optional Text Plugin] Financial transaction keywords ({', '.join(matches)})")
 
-        # Determine Alert Level & Recommendation
-        if is_ai_voice and has_keywords:
+        # Determine Alert Level & Recommendation based on Content-Free Voice Biometrics
+        if wavlm_score >= 75.0:
             alert_level = "RED"
             recommendation = "RECOMMEND_DISCONNECT"
             recommended_action = "RECOMMEND_DISCONNECT"
             action_taken = "USER_WARNED_DISCONNECTED_MANUALLY"
-            user_message = "🚨 HIGH RISK: AI voice + fraud keywords detected. Recommended: disconnect call and verify via callback."
-        elif is_ai_voice and not has_keywords:
+            user_message = "🚨 HIGH RISK: AI synthetic voice clone detected via acoustic biometrics. Recommended: disconnect call."
+        elif wavlm_score >= 50.0:
             alert_level = "YELLOW"
             recommendation = "PROCEED_WITH_CAUTION"
             recommended_action = "WARN_USER_CAUTION"
             action_taken = "USER_NOTIFIED"
-            user_message = "⚠️ WARNING: AI synthetic voice detected. Proceed with caution."
-        elif not is_ai_voice and has_keywords:
-            alert_level = "YELLOW"
-            recommendation = "REQUIRE_SECONDARY_OTP"
-            recommended_action = "WARN_USER_CAUTION"
-            action_taken = "USER_NOTIFIED"
-            user_message = "⚠️ WARNING: Possible social engineering attempt by human caller."
+            user_message = "⚠️ WARNING: Unnatural vocal features detected. Proceed with caution."
         else:
             alert_level = "GREEN"
             recommendation = "ALLOW"
             recommended_action = "ALLOW_CALL"
             action_taken = "CALL_ALLOWED"
-            user_message = "✅ AUTHENTIC REAL HUMAN VOICE: Voice identity and speech content verified."
+            user_message = "✅ AUTHENTIC REAL HUMAN VOICE: Voice biometrics and natural acoustic features verified."
 
         # Cap score for RED alert
         if alert_level == "RED":

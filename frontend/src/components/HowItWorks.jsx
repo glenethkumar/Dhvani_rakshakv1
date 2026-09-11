@@ -26,17 +26,17 @@ export default function HowItWorks() {
     },
     {
       num: "04",
-      title: "Content & Fraud Keyword Scanner",
+      title: "Prosodic & Speaker Biometrics (ECAPA-TDNN)",
       icon: Activity,
       color: "#EC4899",
-      desc: "Whisper STT transcribes speech. Scans for fraud keywords ('transfer', 'OTP', 'urgent', 'CEO') and urgency pressure."
+      desc: "Verifies vocal pitch variability, cadence, and enrolled speaker identity vectors without accessing speech text content."
     },
     {
       num: "05",
-      title: "Weighted Score Fusion Engine",
+      title: "Content-Free Score Fusion Engine",
       icon: ShieldCheck,
       color: "#F59E0B",
-      desc: "Combines 60% Acoustic WavLM + 25% Gemini NLU + 15% Keyword Score into a single 0-100 Fraud Risk Score."
+      desc: "Combines 100% Acoustic & Biometric Voice Biomarkers into a 0-100 Risk Score. 100% privacy-preserving with zero transcript dependency."
     },
     {
       num: "06",

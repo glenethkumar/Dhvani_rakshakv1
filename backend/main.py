@@ -64,7 +64,7 @@ alerts = AlertService()
 intent_analyzer = ContentIntentAnalyzer()
 call_store = CallStoreManager()
 keyword_scanner = KeywordScanner()
-fusion_engine = ScoringFusionEngine(wavlm_weight=0.60, gemini_weight=0.25, keyword_weight=0.15)
+fusion_engine = ScoringFusionEngine(wavlm_weight=1.00, gemini_weight=0.00, keyword_weight=0.00)
 
 # Instantiate 5 Judge-Winning Modules + Telecom Gateway
 xai = ExplainabilityEngine()
