@@ -239,6 +239,8 @@ async def analyze_audio_call(
     risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res, context_mult, intent_res)
     risk_results["risk_score"] = fusion_res["risk_score"]
     risk_results["alert_level"] = fusion_res["alert_level"]
+    risk_results["voice_type"] = fusion_res.get("voice_type", "REAL_HUMAN_VOICE")
+    risk_results["voice_label"] = fusion_res.get("voice_label", "Real Human Voice")
     risk_results["recommendation"] = fusion_res["recommendation"]
     risk_results["user_message"] = fusion_res["user_message"]
     risk_results["flagged_context_risk_factors"] = list(set(risk_flags + fusion_res["flagged_reasons"]))

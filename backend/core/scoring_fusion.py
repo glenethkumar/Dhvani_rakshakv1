@@ -62,25 +62,23 @@ class ScoringFusionEngine:
         if categories.get("has_financial"):
             reasons.append(f"[Optional Text Plugin] Financial transaction keywords ({', '.join(matches)})")
 
-        # Determine Alert Level & Recommendation based on Content-Free Voice Biometrics
-        if wavlm_score >= 75.0:
-            alert_level = "RED"
-            recommendation = "RECOMMEND_DISCONNECT"
-            recommended_action = "RECOMMEND_DISCONNECT"
-            action_taken = "USER_WARNED_DISCONNECTED_MANUALLY"
-            user_message = "🚨 HIGH RISK: AI synthetic voice clone detected via acoustic biometrics. Recommended: disconnect call."
-        elif wavlm_score >= 50.0:
-            alert_level = "YELLOW"
-            recommendation = "PROCEED_WITH_CAUTION"
-            recommended_action = "WARN_USER_CAUTION"
-            action_taken = "USER_NOTIFIED"
-            user_message = "⚠️ WARNING: Unnatural vocal features detected. Proceed with caution."
+        # Determine Voice Classification & Alert Level
+        if wavlm_score >= 50.0:
+            voice_type = "AI_VOICE_CLONE"
+            is_ai_voice = True
+            alert_level = "RED" if wavlm_score >= 70.0 else "YELLOW"
+            recommendation = "RECOMMEND_DISCONNECT" if wavlm_score >= 70.0 else "PROCEED_WITH_CAUTION"
+            recommended_action = "RECOMMEND_DISCONNECT" if wavlm_score >= 70.0 else "WARN_USER_CAUTION"
+            action_taken = "USER_WARNED_DISCONNECTED_MANUALLY" if wavlm_score >= 70.0 else "USER_NOTIFIED"
+            user_message = f"🚨 FAKE AI VOICE CLONE DETECTED ({wavlm_score:.1f}% AI probability). Recommended: disconnect call."
         else:
+            voice_type = "REAL_HUMAN_VOICE"
+            is_ai_voice = False
             alert_level = "GREEN"
             recommendation = "ALLOW"
             recommended_action = "ALLOW_CALL"
             action_taken = "CALL_ALLOWED"
-            user_message = "✅ AUTHENTIC REAL HUMAN VOICE: Voice biometrics and natural acoustic features verified."
+            user_message = f"✅ REAL HUMAN VOICE DETECTED ({100.0 - wavlm_score:.1f}% human authenticity). Voice verified."
 
         # Cap score for RED alert
         if alert_level == "RED":
@@ -89,6 +87,8 @@ class ScoringFusionEngine:
         return {
             "risk_score": final_risk,
             "alert_level": alert_level,
+            "voice_type": voice_type,
+            "voice_label": "Fake AI Voice Clone" if is_ai_voice else "Real Human Voice",
             "recommendation": recommendation,
             "recommended_action": recommended_action,
             "action_taken": action_taken,
