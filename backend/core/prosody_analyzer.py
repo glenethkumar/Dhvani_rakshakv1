@@ -25,6 +25,10 @@ class ProsodyAnalyzer:
         for i in range(num_frames):
             frame = audio[i * hop_size : i * hop_size + frame_size]
 
+            if np.max(np.abs(frame)) < 0.02:
+                f0_contour[i] = 0.0
+                continue
+
             # Fast vector difference function using FFT autocorrelation
             w_len = frame_size - self.max_period
             if w_len <= 0:
@@ -55,7 +59,8 @@ class ProsodyAnalyzer:
                 tau_found = self.min_period + valid_taus[0]
 
             if tau_found > 0:
-                f0_contour[i] = self.sample_rate / tau_found
+                pitch = self.sample_rate / tau_found
+                f0_contour[i] = pitch if 60.0 <= pitch <= 350.0 else 0.0
             else:
                 f0_contour[i] = 0.0  # Unvoiced
 

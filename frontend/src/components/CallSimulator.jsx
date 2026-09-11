@@ -601,12 +601,12 @@ export default function CallSimulator() {
               {/* Risk Level Alert Banner */}
               <div style={{
                 padding: '16px', borderRadius: '12px', border: '1px solid',
-                background: analysisResult.risk_assessment.alert_level === 'RED' ? 'rgba(239, 68, 68, 0.15)' : analysisResult.risk_assessment.alert_level === 'YELLOW' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                borderColor: analysisResult.risk_assessment.alert_level === 'RED' ? '#EF4444' : analysisResult.risk_assessment.alert_level === 'YELLOW' ? '#F59E0B' : '#10B981'
+                background: (analysisResult.risk_assessment.alert_level === 'NO_SPEECH_DETECTED' || analysisResult.risk_assessment.alert_level === 'NO_SPEECH') ? 'rgba(51, 65, 85, 0.25)' : analysisResult.risk_assessment.alert_level === 'RED' ? 'rgba(239, 68, 68, 0.15)' : analysisResult.risk_assessment.alert_level === 'YELLOW' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                borderColor: (analysisResult.risk_assessment.alert_level === 'NO_SPEECH_DETECTED' || analysisResult.risk_assessment.alert_level === 'NO_SPEECH') ? '#64748B' : analysisResult.risk_assessment.alert_level === 'RED' ? '#EF4444' : analysisResult.risk_assessment.alert_level === 'YELLOW' ? '#F59E0B' : '#10B981'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontWeight: '800', fontSize: '18px', color: analysisResult.risk_assessment.alert_level === 'RED' ? '#EF4444' : analysisResult.risk_assessment.alert_level === 'YELLOW' ? '#F59E0B' : '#10B981' }}>
-                    {analysisResult.risk_assessment.alert_level} ALERT (Score: {analysisResult.risk_assessment.risk_score}/100)
+                  <span style={{ fontWeight: '800', fontSize: '18px', color: (analysisResult.risk_assessment.alert_level === 'NO_SPEECH_DETECTED' || analysisResult.risk_assessment.alert_level === 'NO_SPEECH') ? '#94A3B8' : analysisResult.risk_assessment.alert_level === 'RED' ? '#EF4444' : analysisResult.risk_assessment.alert_level === 'YELLOW' ? '#F59E0B' : '#10B981' }}>
+                    {(analysisResult.risk_assessment.alert_level === 'NO_SPEECH_DETECTED' || analysisResult.risk_assessment.alert_level === 'NO_SPEECH') ? 'NO VOICE DETECTED' : `${analysisResult.risk_assessment.alert_level} ALERT (Score: ${analysisResult.risk_assessment.risk_score}/100)`}
                   </span>
                   <span style={{ fontSize: '12px', fontFamily: 'JetBrains Mono', color: 'var(--text-muted)' }}>
                     Latency: {analysisResult.latency_ms}ms

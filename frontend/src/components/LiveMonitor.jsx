@@ -201,9 +201,14 @@ export default function LiveMonitor() {
 
       const riskScore = data.risk_assessment?.risk_score !== undefined ? data.risk_assessment.risk_score : 28.4;
       const alertLevel = data.risk_assessment?.alert_level || (riskScore >= 70 ? 'RED' : riskScore >= 40 ? 'YELLOW' : 'GREEN');
+      const isNoSpeech = alertLevel === 'NO_SPEECH_DETECTED' || alertLevel === 'NO_SPEECH' || data.risk_assessment?.is_speech_detected === false;
 
-      const isAiVoice = riskScore >= 50 || alertLevel === 'RED' || alertLevel === 'YELLOW';
-      const voiceNaturalness = isAiVoice ? "Synthetic (AI Clone)" : "Organic (Human)";
+      let voiceNaturalness = "Organic (Human)";
+      if (isNoSpeech) {
+        voiceNaturalness = "No Spoken Voice";
+      } else if (riskScore >= 50 || alertLevel === 'RED' || alertLevel === 'YELLOW') {
+        voiceNaturalness = "Synthetic (AI Clone)";
+      }
 
       const pitchHz = data.prosody_analysis?.mean_f0_hz !== undefined
         ? Math.round(data.prosody_analysis.mean_f0_hz * 10) / 10
@@ -228,20 +233,23 @@ export default function LiveMonitor() {
         language: data.prosody_analysis?.detected_language || "Indian English (en-IN)",
         riskScore: riskScore,
         alertLevel: alertLevel,
-        recommendation: data.risk_assessment?.recommendation || (alertLevel === 'RED' ? 'RECOMMEND_DISCONNECT' : 'ALLOW'),
+        recommendation: data.risk_assessment?.recommendation || (isNoSpeech ? 'TRY_AGAIN_WITH_CLEAR_SPEECH' : alertLevel === 'RED' ? 'RECOMMEND_DISCONNECT' : 'ALLOW'),
         voiceNaturalness: voiceNaturalness,
         pitchHz: pitchHz,
         jitterPct: jitterPct,
         phaseSmoothness: phaseSmoothness,
         ttsSignatures: ttsSigs,
-        mfccVar: data.acoustic_analysis?.mfcc_variance || 14.8
+        mfccVar: data.acoustic_analysis?.mfcc_variance || 14.8,
+        userMessage: data.risk_assessment?.user_message || (isNoSpeech ? "🎧 No spoken voice detected in this clip — please try again with clear speech" : "")
       });
 
       setMeasuredLatency(latencyMs);
 
       // Decision status label for the log feed
       let statusText = "Authenticated";
-      if (alertLevel === 'RED') {
+      if (isNoSpeech) {
+        statusText = "No Voice Detected";
+      } else if (alertLevel === 'RED') {
         statusText = "High Risk — Flagged for Review";
       } else if (alertLevel === 'YELLOW') {
         statusText = "Step-up Verification Recommended";
@@ -383,6 +391,7 @@ export default function LiveMonitor() {
   const getAlertBadgeClass = (level) => {
     if (level === 'RED') return 'bg-red-500/20 text-red-400 border-red-500/50 glow-red';
     if (level === 'YELLOW') return 'bg-amber-500/20 text-amber-400 border-amber-500/50';
+    if (level === 'NO_SPEECH_DETECTED' || level === 'NO_SPEECH') return 'bg-slate-500/20 text-slate-300 border-slate-500/50';
     return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 glow-green';
   };
 
@@ -574,25 +583,42 @@ export default function LiveMonitor() {
               <circle cx="50" cy="50" r="42" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="10" fill="none" />
               <circle
                 cx="50" cy="50" r="42"
-                stroke={activeCall.alertLevel === 'RED' ? '#EF4444' : activeCall.alertLevel === 'YELLOW' ? '#F59E0B' : '#10B981'}
+                stroke={
+                  activeCall.alertLevel === 'RED' ? '#EF4444' :
+                  activeCall.alertLevel === 'YELLOW' ? '#F59E0B' :
+                  (activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? '#6B7280' : '#10B981'
+                }
                 strokeWidth="10" fill="none"
                 strokeDasharray="264"
-                strokeDashoffset={264 - (264 * activeCall.riskScore) / 100}
+                strokeDashoffset={
+                  (activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH')
+                    ? 264
+                    : 264 - (264 * activeCall.riskScore) / 100
+                }
                 strokeLinecap="round"
                 transform="rotate(-90 50 50)"
                 style={{ transition: 'stroke-dashoffset 0.5s ease' }}
               />
             </svg>
             <div style={{ position: 'absolute', textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', fontWeight: '800', lineHeight: '1', color: activeCall.alertLevel === 'RED' ? '#EF4444' : activeCall.alertLevel === 'YELLOW' ? '#F59E0B' : '#10B981' }}>
-                {activeCall.riskScore}
+              <div style={{
+                fontSize: (activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? '22px' : '32px',
+                fontWeight: '800', lineHeight: '1',
+                color: activeCall.alertLevel === 'RED' ? '#EF4444' : activeCall.alertLevel === 'YELLOW' ? '#F59E0B' : (activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? '#9CA3AF' : '#10B981'
+              }}>
+                {(activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? 'N/A' : activeCall.riskScore}
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>SCORE / 100</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                {(activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? 'NO VOICE' : 'SCORE / 100'}
+              </div>
             </div>
           </div>
 
-          <div style={{ padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '700', letterSpacing: '0.5px', border: '1px solid' }} className={getAlertBadgeClass(activeCall.alertLevel)}>
-            {activeCall.alertLevel === 'RED' ? 'HIGH RISK — AI CLONE' : activeCall.alertLevel === 'YELLOW' ? 'MEDIUM RISK — ANOMALY' : 'LOW RISK — AUTHENTIC HUMAN'}
+          <div style={{ padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '700', letterSpacing: '0.5px', border: '1px solid', textAlign: 'center' }} className={getAlertBadgeClass(activeCall.alertLevel)}>
+            {activeCall.alertLevel === 'RED' ? 'HIGH RISK — AI CLONE' :
+             activeCall.alertLevel === 'YELLOW' ? 'MEDIUM RISK — ANOMALY' :
+             (activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? 'NO VOICE DETECTED — PLEASE TRY AGAIN' :
+             'LOW RISK — AUTHENTIC HUMAN'}
           </div>
 
           {/* TTS Signature Progress Bars */}

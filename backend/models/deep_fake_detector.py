@@ -137,22 +137,67 @@ class DeepFakeDetector:
 
         # STFT Phase smoothness variance (synthetic neural vocoders generate unnaturally smooth phase < 1.2)
         stft_mat = signal.stft(audio, fs=self.sample_rate, nperseg=256, noverlap=128)[2]
-        phase_var = float(np.var(np.diff(np.angle(stft_mat), axis=1)))
+        phases = np.unwrap(np.angle(stft_mat), axis=1)
+        phase_diff = np.diff(phases, axis=1)
+        phase_var = float(np.mean(np.var(phase_diff, axis=1)))
 
         # 4. Synthesizer & Vocoder Anomaly Accumulation
+        # AUTHENTICITY SCORING INSTRUCTION:
+        # Echo, room reverberation, compression artifacts, or quality loss from audio being played
+        # through a speaker and re-recorded (a 'replay' scenario) should NOT by itself be treated
+        # as evidence of AI generation. Only flag clear synthesis artifacts: unnatural pitch contours,
+        # robotic rhythm, missing natural breathing, or spectral signatures specific to neural voice synthesis
+        # — not general audio quality degradation.
         spoof_evidence = 0.0
 
-        # High-frequency synthetic vocoder noise/buzzing (> 0.08)
-        if high_freq_energy > 0.08:
-            spoof_evidence += min(0.6, (high_freq_energy - 0.08) * 6.0)
-
-        # Unnatural phase regularity in synthetic vocoders (< 1.2)
+        # STFT Phase smoothness variance:
+        # Synthetic neural vocoders generate unnaturally smooth phase (< 1.2).
+        # Replayed speech through speakers adds room reverberation / phase dispersion (phase_var > 2.0).
         if phase_var < 1.2:
             spoof_evidence += (1.2 - phase_var) * 0.40
 
+        # High-frequency noise/buzzing (> 0.08) - ONLY accumulate if phase is unnaturally smooth (synthetic vocoder).
+        # Speaker replay adds high frequency room reflections / hiss (phase_var > 2.0), which is NOT AI vocoder noise.
+        if high_freq_energy > 0.08 and phase_var < 2.0:
+            spoof_evidence += min(0.6, (high_freq_energy - 0.08) * 6.0)
+
         # Unnatural LFCC frame regularity (< 0.20)
-        if raw_lfcc_std < 0.20:
+        if raw_lfcc_std < 0.20 and phase_var < 2.0:
             spoof_evidence += (0.20 - raw_lfcc_std) * 2.0
+
+        # Unnatural pitch contour regularity (robotic pitch flat contour std_f0 < 3.0 Hz)
+        # Pitch tracking check on audio signal:
+        f0_estimates = []
+        hop = int(self.sample_rate * 0.010)
+        flen = int(self.sample_rate * 0.025)
+        for i in range(0, max(1, len(audio) - flen), hop):
+            frame = audio[i : i + flen]
+            if np.max(np.abs(frame)) < 0.02:
+                continue
+            r = np.correlate(frame, frame, mode='full')[flen - 1 :]
+            d = np.diff(r)
+            start_idx = np.where(d > 0)[0]
+            if len(start_idx) > 0 and start_idx[0] + 1 < len(r):
+                peak_idx = start_idx[0] + 1 + np.argmax(r[start_idx[0] + 1 : min(len(r), int(self.sample_rate / 60.0))])
+                if 60.0 <= (self.sample_rate / peak_idx) <= 400.0 and r[peak_idx] > 0.3 * (r[0] + 1e-8):
+                    f0_estimates.append(self.sample_rate / peak_idx)
+
+        if len(f0_estimates) > 5:
+            std_f0 = float(np.std(f0_estimates))
+            f0_diffs = np.abs(np.diff(f0_estimates))
+            jitter_pct = float(np.mean(f0_diffs) / (np.mean(f0_estimates) + 1e-8) * 100.0)
+
+            # Flag synthesis artifacts: unnatural flat pitch contour (std_f0 < 3.0 Hz or f0_range < 8.0 Hz) and missing natural breathing / tremor (jitter < 0.10%)
+            f0_rng = float(np.max(f0_estimates) - np.min(f0_estimates))
+            if std_f0 < 3.0 or f0_rng < 8.0:
+                spoof_evidence += 0.45
+            if jitter_pct < 0.10:
+                spoof_evidence += 0.35
+
+        # Replay / Room echo exemption check: if phase variance is high (phase_var >= 2.2),
+        # this indicates speaker playback room acoustics / microphone re-capture, NOT neural AI synthesis.
+        if phase_var >= 2.2:
+            spoof_evidence = max(0.0, spoof_evidence - 0.35)
 
         # 5. Calibrated AASIST Logit Projection
         # Clean human speech (spoof_evidence <= 0.10) maps to <20% risk (GREEN).

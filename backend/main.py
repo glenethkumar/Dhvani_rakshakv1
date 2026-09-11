@@ -169,26 +169,32 @@ async def analyze_audio_call(
     audio, sr = ingestion.load_wav_bytes(bytes_data)
     audio = ingestion.preprocess(audio, sr)
 
-    # Voice Activity Detection (VAD) Silence Check
-    if not ingestion.is_speech_active(audio):
+    # Step 1: Explicit Speech Presence Check BEFORE authenticity scoring step
+    # "Does this audio contain clearly audible spoken human language (not music, not silence, not ambient noise)?"
+    is_speech_present, speech_reason = ingestion.is_spoken_human_speech(audio, sr)
+    if not is_speech_present:
         return {
             "session_id": session_id,
             "latency_ms": round((time.time() - start_time) * 1000.0, 2),
             "risk_assessment": {
                 "risk_score": 0.0,
-                "authenticity_score": 100.0,
-                "risk_level": "Low",
-                "alert_level": "WAITING",
+                "authenticity_score": 0.0,
+                "risk_level": "Neutral",
+                "alert_level": "NO_SPEECH_DETECTED",
                 "is_speech_detected": False,
-                "user_message": "🎧 Listening for caller voice... (Waiting for speech)",
-                "threat_category": "SILENCE"
+                "voice_type": "NO_SPEECH_DETECTED",
+                "voice_label": "No Spoken Voice Detected",
+                "recommendation": "TRY_AGAIN_WITH_CLEAR_SPEECH",
+                "user_message": "🎧 No spoken voice detected in this clip — please try again with clear speech",
+                "reasoning": "No spoken voice detected in this clip",
+                "flagged_context_risk_factors": ["Clip contains music, ambient noise, or silence instead of clear spoken human speech"]
             },
-            "acoustic_analysis": {"is_speech": False, "neural_deepfake_probability": 0.0},
-            "prosody_analysis": {"is_speech": False, "jitter_percent": 0.0, "shimmer_percent": 0.0},
+            "acoustic_analysis": {"is_speech": False, "neural_deepfake_probability": 0.0, "tts_signatures": {"ElevenLabs": 0.0, "OpenAI_Voice": 0.0}},
+            "prosody_analysis": {"is_speech": False, "jitter_percent": 0.0, "shimmer_percent": 0.0, "mean_f0_hz": 0.0},
             "speaker_verification": {"speaker_similarity": 0.0, "identity_matched": False},
-            "xai_explanation": {"summary": "Caller is currently silent. Waiting for vocal input to analyze ML features."},
+            "xai_explanation": {"summary": "No spoken voice detected in this clip. Please try again with clear human speech."},
             "mitigation_workflow": None,
-            "audit_integrity_hash": "SILENCE_PENDING_SPEECH"
+            "audit_integrity_hash": "NO_SPEECH_DETECTED"
         }
 
     # Parse metadata
@@ -215,11 +221,22 @@ async def analyze_audio_call(
     # 4. Pure Acoustic & Voice Biometric Evaluation
     wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
 
-    # Calibration check: if prosody exhibits natural pitch variation (std_f0_hz >= 5.0 and 0.15% <= jitter <= 15.0%),
-    # scale down risk score to authentic human range (< 25.0)
+    # Explicit Replay & Speaker Echo Exemption Rule:
+    # Echo, room reverberation, compression artifacts, or quality loss from audio being played
+    # through a speaker and re-recorded (a 'replay' scenario) should NOT by itself be treated
+    # as evidence of AI generation. Only flag clear synthesis artifacts: unnatural pitch contours,
+    # robotic rhythm, missing natural breathing, or spectral signatures specific to neural voice synthesis
+    # — not general audio quality degradation.
     std_f0 = pr_res.get("std_f0_hz", 0.0)
+    f0_range = pr_res.get("f0_range_hz", 0.0)
     jitter = pr_res.get("jitter_percent", 0.0)
-    if (std_f0 >= 5.0 or pr_res.get("f0_range_hz", 0.0) >= 15.0) and (0.15 <= jitter <= 15.0):
+    phase_var = ac_res.get("spectral_features", {}).get("phase_smoothness_variance", 3.0)
+
+    is_human_pitch = (std_f0 >= 4.0 or f0_range >= 10.0) and (0.12 <= jitter <= 20.0)
+    is_replay_reverb = (phase_var >= 2.0)
+    is_ai_tts = (std_f0 < 3.0 or f0_range < 8.0 or jitter < 0.10 or ac_res.get("neural_deepfake_probability", 0.0) >= 0.50)
+
+    if (is_human_pitch or is_replay_reverb) and not is_ai_tts:
         wavlm_score = min(wavlm_score, 18.5)
 
     amount = float(transaction_context.get("amount_inr", 0.0))
@@ -383,8 +400,9 @@ async def websocket_live_audio_stream(websocket: WebSocket):
             start_t = time.time()
             chunk_audio, sr = ingestion.load_wav_bytes(data)
 
-            # VAD Silence Check on current chunk
-            if not ingestion.is_speech_active(chunk_audio):
+            # Speech Presence Check on current chunk
+            is_speech_present, _ = ingestion.is_spoken_human_speech(chunk_audio, sr)
+            if not is_speech_present:
                 latency_ms = round((time.time() - start_t) * 1000.0, 2)
                 ws_session_ema_scores[session_id] = 0.0
                 ws_session_buffers[session_id] = np.array([], dtype=np.float32)
@@ -392,15 +410,15 @@ async def websocket_live_audio_stream(websocket: WebSocket):
                     "session_id": session_id,
                     "latency_ms": latency_ms,
                     "risk_score": 0.0,
-                    "authenticity_score": 100.0,
-                    "risk_level": "Low",
-                    "alert_level": "WAITING",
-                    "recommendation": "WAIT_FOR_SPEECH",
+                    "authenticity_score": 0.0,
+                    "risk_level": "Neutral",
+                    "alert_level": "NO_SPEECH_DETECTED",
+                    "recommendation": "TRY_AGAIN_WITH_CLEAR_SPEECH",
                     "tts_signatures": {"ElevenLabs": 0.0, "OpenAI_Voice": 0.0},
                     "acoustic_anomaly": 0.0,
                     "prosody_anomaly": 0.0,
                     "is_speech_detected": False,
-                    "user_message": "🎧 Listening for caller voice... (Waiting for speech)"
+                    "user_message": "🎧 No spoken voice detected in this clip — please try again with clear speech"
                 }
                 await websocket.send_json(response_payload)
                 continue

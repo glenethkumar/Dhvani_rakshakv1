@@ -120,11 +120,11 @@ class AcousticAnalyzer:
         high_freq_bin = int(len(fft_mag) * (7000 / (self.sample_rate / 2)))
         high_freq_energy_ratio = float(np.sum(fft_mag[high_freq_bin:]**2) / (np.sum(fft_mag**2) + 1e-10))
 
-        # Phase discontinuity score (STFT phase smoothness)
+        # Phase discontinuity score (STFT phase smoothness across time per frequency bin)
         stft_matrix = signal.stft(audio, fs=self.sample_rate, nperseg=256, noverlap=128)[2]
-        phases = np.angle(stft_matrix)
+        phases = np.unwrap(np.angle(stft_matrix), axis=1)
         phase_diff = np.diff(phases, axis=1)
-        phase_smoothness_variance = float(np.var(phase_diff))
+        phase_smoothness_variance = float(np.mean(np.var(phase_diff, axis=1)))
 
         return {
             "spectral_centroid": round(centroid, 2),
@@ -168,12 +168,14 @@ class AcousticAnalyzer:
 
         # DSP anomaly score calibrated for human vs AI
         # Normal human speech has mfcc_std around 1.0 - 4.0. Synthetic audio has flat mfcc_std < 0.45
+        # Replay rule: Echo, room reverberation, compression artifacts, or quality loss from audio being played
+        # through a speaker and re-recorded should NOT by itself be treated as evidence of AI generation.
         dsp_anomaly = 0.0
-        if mfcc_std < 0.45:
+        if mfcc_std < 0.45 and spec_feats["phase_smoothness_variance"] < 2.0:
             dsp_anomaly += (0.45 - mfcc_std) * 1.5
         if spec_feats["phase_smoothness_variance"] < 1.2:
             dsp_anomaly += 0.25
-        if spec_feats["high_freq_energy_ratio"] > 0.08:
+        if spec_feats["high_freq_energy_ratio"] > 0.08 and spec_feats["phase_smoothness_variance"] < 2.0:
             dsp_anomaly += 0.35
 
         dsp_anomaly = float(np.clip(dsp_anomaly, 0.05, 0.95))
