@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
 

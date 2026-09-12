@@ -131,7 +131,8 @@ class DeepFakeDetector:
 
         # 3. Acoustic physical & spectro-temporal sanity metrics
         fft_mag = np.abs(fft.rfft(audio[:min(len(audio), 4096)]))
-        high_freq_energy = float(np.sum(fft_mag[len(fft_mag)//2 :]) / (np.sum(fft_mag) + 1e-8))
+        high_freq_bin = int(len(fft_mag) * (7000.0 / (self.sample_rate / 2.0)))
+        high_freq_energy = float(np.sum(fft_mag[high_freq_bin:]) / (np.sum(fft_mag) + 1e-8))
 
         raw_lfcc_std = float(np.mean(np.std(lfcc, axis=0)))
 
@@ -142,31 +143,37 @@ class DeepFakeDetector:
         phase_var = float(np.mean(np.var(phase_diff, axis=1)))
 
         # 4. Synthesizer & Vocoder Anomaly Accumulation
-        # AUTHENTICITY SCORING INSTRUCTION:
-        # Echo, room reverberation, compression artifacts, or quality loss from audio being played
-        # through a speaker and re-recorded (a 'replay' scenario) should NOT by itself be treated
-        # as evidence of AI generation. Only flag clear synthesis artifacts: unnatural pitch contours,
-        # robotic rhythm, missing natural breathing, or spectral signatures specific to neural voice synthesis
-        # — not general audio quality degradation.
+        # AUTHENTICITY CHECK INSTRUCTIONS:
+        # Separate audio characteristics into two distinct categories:
+        # 1. "REPLAY DEGRADATION" (do NOT flag as suspicious):
+        #    General loss of clarity, echo, or muffling consistent with audio being played through a speaker
+        #    and re-recorded, where the underlying speech rhythm and pitch still sound naturally human.
+        # 2. "SYNTHESIS ARTIFACTS" (SHOULD flag as suspicious, regardless of recording quality):
+        #    Unnaturally flat or robotic pitch contour, mechanically even word timing, missing natural
+        #    breathing/mouth sounds, metallic or overly smooth timbre, or abrupt unnatural transitions between words
+        #    — these are signs of HOW the voice was produced, not just how it was recorded, and should still be flagged
+        #    even in a lower-quality or replayed clip.
+        #
+        # RULE: Judge based on the speech production characteristics, not just overall audio clarity.
+        # A clear recording of an AI voice and a slightly degraded recording of an AI voice should both
+        # be flagged if synthesis artifacts are present.
         spoof_evidence = 0.0
 
         # STFT Phase smoothness variance:
         # Synthetic neural vocoders generate unnaturally smooth phase (< 1.2).
-        # Replayed speech through speakers adds room reverberation / phase dispersion (phase_var > 2.0).
         if phase_var < 1.2:
             spoof_evidence += (1.2 - phase_var) * 0.40
 
-        # High-frequency noise/buzzing (> 0.08) - ONLY accumulate if phase is unnaturally smooth (synthetic vocoder).
-        # Speaker replay adds high frequency room reflections / hiss (phase_var > 2.0), which is NOT AI vocoder noise.
-        if high_freq_energy > 0.08 and phase_var < 2.0:
+        # High-frequency energy ratio (> 0.08) - neural vocoder spectral signature artifact
+        if high_freq_energy > 0.08:
             spoof_evidence += min(0.6, (high_freq_energy - 0.08) * 6.0)
 
-        # Unnatural LFCC frame regularity (< 0.20)
-        if raw_lfcc_std < 0.20 and phase_var < 2.0:
+        # Unnatural LFCC frame regularity (< 0.20) - mechanical frame-to-frame uniformity artifact
+        if raw_lfcc_std < 0.20:
             spoof_evidence += (0.20 - raw_lfcc_std) * 2.0
 
-        # Unnatural pitch contour regularity (robotic pitch flat contour std_f0 < 3.0 Hz)
-        # Pitch tracking check on audio signal:
+        # Unnatural pitch contour regularity (robotic pitch flat contour std_f0 < 3.5 Hz or f0_range < 9.0 Hz)
+        # and missing natural breathing / micro-jitter (jitter < 0.12%)
         f0_estimates = []
         hop = int(self.sample_rate * 0.010)
         flen = int(self.sample_rate * 0.025)
@@ -182,21 +189,28 @@ class DeepFakeDetector:
                 if 60.0 <= (self.sample_rate / peak_idx) <= 400.0 and r[peak_idx] > 0.3 * (r[0] + 1e-8):
                     f0_estimates.append(self.sample_rate / peak_idx)
 
+        has_synthesis_pitch_artifact = False
+        is_human_pitch_dynamics = False
         if len(f0_estimates) > 5:
             std_f0 = float(np.std(f0_estimates))
             f0_diffs = np.abs(np.diff(f0_estimates))
             jitter_pct = float(np.mean(f0_diffs) / (np.mean(f0_estimates) + 1e-8) * 100.0)
-
-            # Flag synthesis artifacts: unnatural flat pitch contour (std_f0 < 3.0 Hz or f0_range < 8.0 Hz) and missing natural breathing / tremor (jitter < 0.10%)
             f0_rng = float(np.max(f0_estimates) - np.min(f0_estimates))
-            if std_f0 < 3.0 or f0_rng < 8.0:
-                spoof_evidence += 0.45
-            if jitter_pct < 0.10:
-                spoof_evidence += 0.35
 
-        # Replay / Room echo exemption check: if phase variance is high (phase_var >= 2.2),
-        # this indicates speaker playback room acoustics / microphone re-capture, NOT neural AI synthesis.
-        if phase_var >= 2.2:
+            if std_f0 < 3.5 or f0_rng < 9.0:
+                spoof_evidence += 0.50
+                has_synthesis_pitch_artifact = True
+            if jitter_pct < 0.12:
+                spoof_evidence += 0.40
+                has_synthesis_pitch_artifact = True
+
+            if std_f0 >= 4.0 and f0_rng >= 10.0 and jitter_pct >= 0.12:
+                is_human_pitch_dynamics = True
+
+        # Replay Degradation Exemption Rule:
+        # Subtract spoof evidence ONLY if speech production is genuinely human AND no synthesis artifacts exist.
+        # If synthesis artifacts are present, DO NOT subtract spoof evidence — degraded/replayed AI clips MUST still be flagged!
+        if phase_var >= 2.2 and is_human_pitch_dynamics and not has_synthesis_pitch_artifact:
             spoof_evidence = max(0.0, spoof_evidence - 0.35)
 
         # 5. Calibrated AASIST Logit Projection

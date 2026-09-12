@@ -167,15 +167,14 @@ class AcousticAnalyzer:
         neural_sigs = neural_res["vocoder_fingerprints"]
 
         # DSP anomaly score calibrated for human vs AI
-        # Normal human speech has mfcc_std around 1.0 - 4.0. Synthetic audio has flat mfcc_std < 0.45
-        # Replay rule: Echo, room reverberation, compression artifacts, or quality loss from audio being played
-        # through a speaker and re-recorded should NOT by itself be treated as evidence of AI generation.
+        # Replay degradation rule: General loss of clarity or echo from speaker playback should NOT be flagged IF speech rhythm/pitch are naturally human.
+        # Synthesis artifacts: Mechanically even MFCCs, smooth phase, or vocoder signatures MUST be accumulated as DSP anomalies even in replayed audio.
         dsp_anomaly = 0.0
-        if mfcc_std < 0.45 and spec_feats["phase_smoothness_variance"] < 2.0:
+        if mfcc_std < 0.45:
             dsp_anomaly += (0.45 - mfcc_std) * 1.5
         if spec_feats["phase_smoothness_variance"] < 1.2:
             dsp_anomaly += 0.25
-        if spec_feats["high_freq_energy_ratio"] > 0.08 and spec_feats["phase_smoothness_variance"] < 2.0:
+        if spec_feats["high_freq_energy_ratio"] > 0.08:
             dsp_anomaly += 0.35
 
         dsp_anomaly = float(np.clip(dsp_anomaly, 0.05, 0.95))
