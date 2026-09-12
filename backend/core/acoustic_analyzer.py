@@ -120,9 +120,14 @@ class AcousticAnalyzer:
         high_freq_bin = int(len(fft_mag) * (7000 / (self.sample_rate / 2)))
         high_freq_energy_ratio = float(np.sum(fft_mag[high_freq_bin:]**2) / (np.sum(fft_mag**2) + 1e-10))
 
-        # Phase discontinuity score (STFT phase smoothness across time per frequency bin)
+        # Phase discontinuity score across voiced speech frames
         stft_matrix = signal.stft(audio, fs=self.sample_rate, nperseg=256, noverlap=128)[2]
-        phases = np.unwrap(np.angle(stft_matrix), axis=1)
+        frame_energies = np.mean(np.abs(stft_matrix)**2, axis=0)
+        voiced_mask = frame_energies > (0.05 * (np.max(frame_energies) + 1e-8))
+        if np.sum(voiced_mask) > 5:
+            phases = np.unwrap(np.angle(stft_matrix[:, voiced_mask]), axis=1)
+        else:
+            phases = np.unwrap(np.angle(stft_matrix), axis=1)
         phase_diff = np.diff(phases, axis=1)
         phase_smoothness_variance = float(np.mean(np.var(phase_diff, axis=1)))
 

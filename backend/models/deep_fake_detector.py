@@ -136,43 +136,77 @@ class DeepFakeDetector:
 
         raw_lfcc_std = float(np.mean(np.std(lfcc, axis=0)))
 
-        # STFT Phase smoothness variance (synthetic neural vocoders generate unnaturally smooth phase < 1.2)
+        # STFT Phase smoothness variance across voiced frames
+        # Synthetic neural vocoders generate unnaturally smooth phase (< 1.4) during voiced speech frames.
         stft_mat = signal.stft(audio, fs=self.sample_rate, nperseg=256, noverlap=128)[2]
-        phases = np.unwrap(np.angle(stft_mat), axis=1)
+        frame_energies = np.mean(np.abs(stft_mat)**2, axis=0)
+        voiced_mask = frame_energies > (0.05 * (np.max(frame_energies) + 1e-8))
+        if np.sum(voiced_mask) > 5:
+            phases = np.unwrap(np.angle(stft_mat[:, voiced_mask]), axis=1)
+        else:
+            phases = np.unwrap(np.angle(stft_mat), axis=1)
         phase_diff = np.diff(phases, axis=1)
         phase_var = float(np.mean(np.var(phase_diff, axis=1)))
 
+        # Speech band STFT bins (200 Hz to 4000 Hz) for vocal tract formant envelope analysis
+        bin_low = int(200.0 / (self.sample_rate / 256.0))
+        bin_high = int(4000.0 / (self.sample_rate / 256.0))
+        stft_speech_band = stft_mat[bin_low:bin_high, :]
+        frame_energies_sb = np.mean(np.abs(stft_speech_band)**2, axis=0)
+        voiced_mask_sb = frame_energies_sb > (0.05 * (np.max(frame_energies_sb) + 1e-8))
+
+        if np.sum(voiced_mask_sb) > 5:
+            speech_mags = np.abs(stft_speech_band[:, voiced_mask_sb])
+            geom = np.exp(np.mean(np.log(speech_mags + 1e-10), axis=0))
+            arith = np.mean(speech_mags, axis=0) + 1e-10
+            flatness_speech_band = float(np.mean(geom / arith))
+        else:
+            flatness_speech_band = 0.35
+
+        # Voice splicing jump detection
+        energy_frames = np.array([np.sum(audio[i:i+256]**2) for i in range(0, max(1, len(audio)-256), 128)])
+        if len(energy_frames) > 2:
+            energy_diffs = np.abs(np.diff(energy_frames)) / (np.mean(energy_frames) + 1e-10)
+            max_discontinuity = float(np.max(energy_diffs))
+        else:
+            max_discontinuity = 0.0
+
         # 4. Synthesizer & Vocoder Anomaly Accumulation
-        # AUTHENTICITY CHECK INSTRUCTIONS:
-        # Separate audio characteristics into two distinct categories:
+        # AUTHENTICITY CHECK & VOICE CONVERSION DETECTION INSTRUCTIONS:
+        # Separate audio checks into independent dimensions (Rhythm/Prosody vs Timbre/Spectral):
         # 1. "REPLAY DEGRADATION" (do NOT flag as suspicious):
         #    General loss of clarity, echo, or muffling consistent with audio being played through a speaker
-        #    and re-recorded, where the underlying speech rhythm and pitch still sound naturally human.
-        # 2. "SYNTHESIS ARTIFACTS" (SHOULD flag as suspicious, regardless of recording quality):
-        #    Unnaturally flat or robotic pitch contour, mechanically even word timing, missing natural
-        #    breathing/mouth sounds, metallic or overly smooth timbre, or abrupt unnatural transitions between words
-        #    — these are signs of HOW the voice was produced, not just how it was recorded, and should still be flagged
-        #    even in a lower-quality or replayed clip.
+        #    and re-recorded, where BOTH underlying speech rhythm and vocal timbre remain natural human acoustic signals.
         #
-        # RULE: Judge based on the speech production characteristics, not just overall audio clarity.
-        # A clear recording of an AI voice and a slightly degraded recording of an AI voice should both
-        # be flagged if synthesis artifacts are present.
+        # 2. "SYNTHESIS & VOICE CONVERSION ARTIFACTS" (SHOULD flag as suspicious, regardless of natural rhythm/recording quality):
+        #    - TTS Synthesis Artifacts: Unnaturally flat or robotic pitch contour, mechanically even word timing, missing natural breathing.
+        #    - Voice Conversion (RVC / Voice-to-Voice) Artifacts: Natural human speech rhythm/pitch variation coupled with
+        #      synthetic vocal timbre — formant/spectral envelope inconsistencies (metallic, layered, or unnatural vocal tract resonance),
+        #      neural vocoder phase alignment (phase smoothness variance < 1.4), raw LFCC regularity (< 0.20), or boundary micro-glitches.
+        #
+        # RULE: Natural-sounding rhythm and pauses alone do NOT mean a voice is genuine — voice-conversion tools preserve
+        # the original speaker's real rhythm while only altering vocal timbre. Judge timbre and spectral characteristics
+        # independently from rhythm/prosody, and flag as suspicious if EITHER shows synthetic signs, not only if both do.
+        # A clear recording of a voice-converted clip and a replayed/degraded recording of a voice-converted clip should BOTH be flagged.
         spoof_evidence = 0.0
 
-        # STFT Phase smoothness variance:
-        # Synthetic neural vocoders generate unnaturally smooth phase (< 1.2).
-        if phase_var < 1.2:
-            spoof_evidence += (1.2 - phase_var) * 0.40
+        # Feature A: STFT Phase smoothness variance (neural vocoders generate unnaturally smooth phase < 1.4)
+        if phase_var < 1.4:
+            spoof_evidence += (1.4 - phase_var) * 0.50
 
-        # High-frequency energy ratio (> 0.08) - neural vocoder spectral signature artifact
-        if high_freq_energy > 0.08:
-            spoof_evidence += min(0.6, (high_freq_energy - 0.08) * 6.0)
+        # Feature B: High-frequency energy ratio (> 0.12) - neural vocoder spectral signature artifact
+        if high_freq_energy > 0.12:
+            spoof_evidence += min(0.6, (high_freq_energy - 0.12) * 6.0)
 
-        # Unnatural LFCC frame regularity (< 0.20) - mechanical frame-to-frame uniformity artifact
+        # Feature C: Unnatural LFCC frame regularity (< 0.20) - mechanical frame-to-frame uniformity artifact
         if raw_lfcc_std < 0.20:
-            spoof_evidence += (0.20 - raw_lfcc_std) * 2.0
+            spoof_evidence += (0.20 - raw_lfcc_std) * 2.5
 
-        # Unnatural pitch contour regularity (robotic pitch flat contour std_f0 < 3.5 Hz or f0_range < 9.0 Hz)
+        # Feature D: Voice Conversion Boundary Micro-glitches
+        if max_discontinuity > 1.3:
+            spoof_evidence += min(0.40, (max_discontinuity - 1.3) * 0.30)
+
+        # Feature E: Unnatural pitch contour regularity (robotic pitch flat contour std_f0 < 3.5 Hz or f0_range < 9.0 Hz)
         # and missing natural breathing / micro-jitter (jitter < 0.12%)
         f0_estimates = []
         hop = int(self.sample_rate * 0.010)
@@ -208,9 +242,11 @@ class DeepFakeDetector:
                 is_human_pitch_dynamics = True
 
         # Replay Degradation Exemption Rule:
-        # Subtract spoof evidence ONLY if speech production is genuinely human AND no synthesis artifacts exist.
-        # If synthesis artifacts are present, DO NOT subtract spoof evidence — degraded/replayed AI clips MUST still be flagged!
-        if phase_var >= 2.2 and is_human_pitch_dynamics and not has_synthesis_pitch_artifact:
+        # Subtract spoof evidence ONLY if BOTH speech prosody AND vocal timbre are verified genuine human (no TTS or VC artifacts)!
+        has_spectral_timbre_artifact = (phase_var < 1.4 or high_freq_energy > 0.12 or raw_lfcc_std < 0.20 or max_discontinuity > 1.3)
+        if phase_var >= 2.2 and is_human_pitch_dynamics and not (has_synthesis_pitch_artifact or has_spectral_timbre_artifact):
+            spoof_evidence = max(0.0, spoof_evidence - 0.35)
+        if phase_var >= 2.2 and is_human_pitch_dynamics and not (has_synthesis_pitch_artifact or has_spectral_timbre_artifact):
             spoof_evidence = max(0.0, spoof_evidence - 0.35)
 
         # 5. Calibrated AASIST Logit Projection

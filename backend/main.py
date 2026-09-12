@@ -221,29 +221,36 @@ async def analyze_audio_call(
     # 4. Pure Acoustic & Voice Biometric Evaluation
     wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
 
-    # AUTHENTICITY CHECK INSTRUCTIONS:
-    # Separate audio characteristics into two distinct categories:
+    # AUTHENTICITY CHECK & VOICE CONVERSION DETECTION INSTRUCTIONS:
+    # Separate audio checks into independent dimensions (Rhythm/Prosody vs Timbre/Spectral):
     # 1. "REPLAY DEGRADATION" (do NOT flag as suspicious):
     #    General loss of clarity, echo, or muffling consistent with audio being played through a speaker
-    #    and re-recorded, where the underlying speech rhythm and pitch still sound naturally human.
-    # 2. "SYNTHESIS ARTIFACTS" (SHOULD flag as suspicious, regardless of recording quality):
-    #    Unnaturally flat or robotic pitch contour, mechanically even word timing, missing natural
-    #    breathing/mouth sounds, metallic or overly smooth timbre, or abrupt unnatural transitions
-    #    between words — these are signs of HOW the voice was produced, not just how it was recorded,
-    #    and should still be flagged even in a lower-quality or replayed clip.
+    #    and re-recorded, where BOTH underlying speech rhythm and vocal timbre remain natural human acoustic signals.
+    # 2. "SYNTHESIS & VOICE CONVERSION ARTIFACTS" (SHOULD flag as suspicious, regardless of natural rhythm/recording quality):
+    #    - TTS Synthesis Artifacts: Unnaturally flat or robotic pitch contour, mechanically even word timing, missing natural breathing.
+    #    - Voice Conversion (RVC / Voice-to-Voice) Artifacts: Natural human speech rhythm/pitch variation coupled with
+    #      synthetic vocal timbre — formant/spectral envelope inconsistencies (metallic, layered, or unnatural vocal tract resonance),
+    #      neural vocoder phase alignment (phase smoothness variance < 1.4), or boundary micro-glitches.
     #
-    # RULE: Judge based on the speech production characteristics, not just overall audio clarity.
-    # A clear recording of an AI voice and a slightly degraded recording of an AI voice should both
-    # be flagged if synthesis artifacts are present.
+    # RULE: Natural-sounding rhythm and pauses alone do NOT mean a voice is genuine — voice-conversion tools preserve
+    # the original speaker's real rhythm while only altering vocal timbre. Judge timbre and spectral characteristics
+    # independently from rhythm/prosody, and flag as suspicious if EITHER shows synthetic signs, not only if both do.
+    # A clear recording of a voice-converted clip and a replayed/degraded recording of a voice-converted clip should BOTH be flagged.
     std_f0 = pr_res.get("std_f0_hz", 0.0)
     f0_range = pr_res.get("f0_range_hz", 0.0)
     jitter = pr_res.get("jitter_percent", 0.0)
+    phase_var = ac_res.get("spectral_features", {}).get("phase_smoothness_variance", 3.0)
+    deepfake_prob = ac_res.get("neural_deepfake_probability", 0.0)
 
     is_human_speech_production = (std_f0 >= 4.0 or f0_range >= 10.0) and (0.12 <= jitter <= 20.0)
-    is_ai_synthesis_artifact = (std_f0 < 3.5 or f0_range < 9.0 or jitter < 0.12 or ac_res.get("neural_deepfake_probability", 0.0) >= 0.40)
+    
+    # Evaluate TTS flat pitch artifacts AND Voice Conversion vocoder timbre/phase artifacts independently
+    is_tts_artifact = (std_f0 < 3.5 or f0_range < 9.0 or jitter < 0.12)
+    is_voice_conversion_artifact = (phase_var < 1.4 or deepfake_prob >= 0.35 or ac_res.get("acoustic_anomaly_score", 0.0) >= 0.25)
+    is_synthetic_voice = is_tts_artifact or is_voice_conversion_artifact
 
-    # Apply Replay Degradation exemption ONLY if human speech production characteristics are verified AND NO synthesis artifacts exist
-    if is_human_speech_production and not is_ai_synthesis_artifact:
+    # Apply Replay Degradation exemption ONLY if human speech prosody is present AND NO synthetic artifacts (TTS or VC) exist!
+    if is_human_speech_production and not is_synthetic_voice:
         wavlm_score = min(wavlm_score, 18.5)
 
     amount = float(transaction_context.get("amount_inr", 0.0))

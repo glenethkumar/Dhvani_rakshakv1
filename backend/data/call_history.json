@@ -1,214 +1,1014 @@
 {
-  "total_calls_analyzed": 20,
-  "clones_detected_blocked": 19,
-  "human_voices_verified": 1,
+  "total_calls_analyzed": 218,
+  "clones_detected_blocked": 98,
+  "human_voices_verified": 109,
   "helpful_ai_allowed": 0,
   "harmful_scams_blocked": 0,
-  "warnings_issued": 0,
-  "total_fraud_prevented_inr": 6750000.0,
+  "warnings_issued": 11,
+  "total_fraud_prevented_inr": 10700000.0,
   "avg_latency_ms": 138.5,
   "true_positive_rate": 98.4,
   "false_positive_rate": 1.2,
   "recent_calls": [
     {
-      "session_id": "SESS_3CF7D067",
-      "timestamp": "2026-09-12 03:48:21 UTC",
+      "session_id": "SESS_98D03041",
+      "timestamp": "2026-09-12 06:09:57 UTC",
       "caller_id": "Live Mic Capture",
-      "risk_score": 89.7,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (89.7% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 1142.17
-    },
-    {
-      "session_id": "SESS_2DE3181C",
-      "timestamp": "2026-09-12 03:48:04 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 85.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (85.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 1039.44
-    },
-    {
-      "session_id": "SESS_7445E2AA",
-      "timestamp": "2026-09-12 03:47:16 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 85.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (85.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 1095.12
-    },
-    {
-      "session_id": "SESS_91FEF1B7",
-      "timestamp": "2026-09-12 03:46:41 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 85.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (85.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 1016.61
-    },
-    {
-      "session_id": "SESS_3928E8AE",
-      "timestamp": "2026-09-12 03:46:18 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 85.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (85.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 995.5
-    },
-    {
-      "session_id": "SESS_11193492",
-      "timestamp": "2026-09-12 03:44:58 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 91.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (91.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 813.09
-    },
-    {
-      "session_id": "SESS_CFEE8D85",
-      "timestamp": "2026-09-12 03:44:55 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 98.0,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (98.0% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 925.38
-    },
-    {
-      "session_id": "SESS_476ADC3D",
-      "timestamp": "2026-09-12 03:44:52 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 91.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (91.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 891.13
-    },
-    {
-      "session_id": "SESS_611984B3",
-      "timestamp": "2026-09-12 03:44:22 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 91.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (91.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 1661.66
-    },
-    {
-      "session_id": "SESS_41A5E494",
-      "timestamp": "2026-09-12 03:44:19 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 98.0,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (98.0% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 1297.42
-    },
-    {
-      "session_id": "SESS_F5DF5DD3",
-      "timestamp": "2026-09-12 03:44:15 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 91.8,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (91.8% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 832.12
-    },
-    {
-      "session_id": "SESS_673C8610",
-      "timestamp": "2026-09-12 03:43:09 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 97.3,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (97.3% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 802.57
-    },
-    {
-      "session_id": "SESS_C074CCBC",
-      "timestamp": "2026-09-12 03:42:18 UTC",
-      "caller_id": "Live Mic Capture",
-      "risk_score": 97.3,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (97.3% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 813.54
-    },
-    {
-      "session_id": "SESS_A11411A6",
-      "timestamp": "2026-09-12 03:17:51 UTC",
-      "caller_id": "LIVE_USER_MIC",
-      "risk_score": 100.0,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (100.0% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 1194.93
-    },
-    {
-      "session_id": "SESS_BA31D071",
-      "timestamp": "2026-09-11 20:10:14 UTC",
-      "caller_id": "LIVE_USER_MIC",
-      "risk_score": 99.5,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (99.5% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 809.17
-    },
-    {
-      "session_id": "SESS_CF3D8049",
-      "timestamp": "2026-09-11 19:51:08 UTC",
-      "caller_id": "Call #8049",
-      "risk_score": 98.0,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (98.0% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 387.29
-    },
-    {
-      "session_id": "SESS_07B65AA7",
-      "timestamp": "2026-09-11 19:50:07 UTC",
-      "caller_id": "Call #5AA7",
-      "risk_score": 98.0,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (98.0% AI Probability). Recommended: disconnect call.",
-      "latency_ms": 476.33
-    },
-    {
-      "session_id": "SESS_35CA302B",
-      "timestamp": "2026-09-10 21:03:21 UTC",
-      "caller_id": "TEST_LONG",
-      "risk_score": 99.4,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "HIGH RISK: AI Voice Clone Detected! Transaction automatically blocked.",
-      "latency_ms": 4753.51
-    },
-    {
-      "session_id": "SESS_A1E94FAC",
-      "timestamp": "2026-09-10 21:03:12 UTC",
-      "caller_id": "TEST_CLONE",
-      "risk_score": 100.0,
-      "alert_level": "RED",
-      "intent_type": "NEUTRAL",
-      "user_message": "HIGH RISK: AI Voice Clone Detected! Transaction automatically blocked.",
-      "latency_ms": 106.27
-    },
-    {
-      "session_id": "SESS_13CC6541",
-      "timestamp": "2026-09-10 21:03:10 UTC",
-      "caller_id": "TEST_GENUINE",
-      "risk_score": 27.0,
+      "risk_score": 43.5,
       "alert_level": "GREEN",
       "intent_type": "NEUTRAL",
-      "user_message": "AUTHENTIC: Voice identity verified. Proceeding with standard process.",
-      "latency_ms": 103.18
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (56.5% Human Authenticity). Voice verified.",
+      "latency_ms": 1108.62
+    },
+    {
+      "session_id": "SESS_F4BCE095",
+      "timestamp": "2026-09-12 06:09:44 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 69.0,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (69.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 890.71
+    },
+    {
+      "session_id": "SESS_46BB0312",
+      "timestamp": "2026-09-12 06:09:34 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 35.2,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (64.8% Human Authenticity). Voice verified.",
+      "latency_ms": 815.17
+    },
+    {
+      "session_id": "SESS_88880925",
+      "timestamp": "2026-09-12 06:09:17 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 69.0,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (69.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 787.92
+    },
+    {
+      "session_id": "SESS_F28159EC",
+      "timestamp": "2026-09-12 06:08:10 UTC",
+      "caller_id": "Call #59EC",
+      "risk_score": 91.8,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (91.8% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 99.19
+    },
+    {
+      "session_id": "SESS_3965026C",
+      "timestamp": "2026-09-12 06:08:08 UTC",
+      "caller_id": "Call #026C",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 121.15
+    },
+    {
+      "session_id": "SESS_CDA0CB9A",
+      "timestamp": "2026-09-12 06:08:05 UTC",
+      "caller_id": "Call #CB9A",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (81.4% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 114.69
+    },
+    {
+      "session_id": "SESS_CF37E74D",
+      "timestamp": "2026-09-12 06:08:03 UTC",
+      "caller_id": "Call #E74D",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 159.68
+    },
+    {
+      "session_id": "SESS_9DDFE083",
+      "timestamp": "2026-09-12 06:07:59 UTC",
+      "caller_id": "Call #E083",
+      "risk_score": 46.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (53.2% Human Authenticity). Voice verified.",
+      "latency_ms": 132.58
+    },
+    {
+      "session_id": "SESS_831D8ACE",
+      "timestamp": "2026-09-12 06:07:57 UTC",
+      "caller_id": "Call #8ACE",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 99.36
+    },
+    {
+      "session_id": "SESS_39329F08",
+      "timestamp": "2026-09-12 06:07:40 UTC",
+      "caller_id": "Call #9F08",
+      "risk_score": 89.9,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (89.9% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 105.34
+    },
+    {
+      "session_id": "SESS_9667EFAE",
+      "timestamp": "2026-09-12 06:07:38 UTC",
+      "caller_id": "Call #EFAE",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 128.82
+    },
+    {
+      "session_id": "SESS_E58EA961",
+      "timestamp": "2026-09-12 06:07:36 UTC",
+      "caller_id": "Call #A961",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.4% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 126.71
+    },
+    {
+      "session_id": "SESS_A6EA15E7",
+      "timestamp": "2026-09-12 06:07:33 UTC",
+      "caller_id": "Call #15E7",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 147.82
+    },
+    {
+      "session_id": "SESS_EA47321A",
+      "timestamp": "2026-09-12 06:07:29 UTC",
+      "caller_id": "Call #321A",
+      "risk_score": 50.5,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (50.5% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 132.53
+    },
+    {
+      "session_id": "SESS_DB4601F2",
+      "timestamp": "2026-09-12 06:07:27 UTC",
+      "caller_id": "Call #01F2",
+      "risk_score": 18.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (81.5% Human Authenticity). Voice verified.",
+      "latency_ms": 108.0
+    },
+    {
+      "session_id": "SESS_CA130AC5",
+      "timestamp": "2026-09-12 06:07:00 UTC",
+      "caller_id": "Call #0AC5",
+      "risk_score": 86.5,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (86.5% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 99.02
+    },
+    {
+      "session_id": "SESS_2B1A8A3E",
+      "timestamp": "2026-09-12 06:06:58 UTC",
+      "caller_id": "Call #8A3E",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 126.5
+    },
+    {
+      "session_id": "SESS_7E28CFDD",
+      "timestamp": "2026-09-12 06:06:56 UTC",
+      "caller_id": "Call #CFDD",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (82.1% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 205.4
+    },
+    {
+      "session_id": "SESS_8BCCBF45",
+      "timestamp": "2026-09-12 06:06:54 UTC",
+      "caller_id": "Call #BF45",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 111.92
+    },
+    {
+      "session_id": "SESS_AD95AE98",
+      "timestamp": "2026-09-12 06:06:50 UTC",
+      "caller_id": "Call #AE98",
+      "risk_score": 41.4,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (58.6% Human Authenticity). Voice verified.",
+      "latency_ms": 129.46
+    },
+    {
+      "session_id": "SESS_475EC921",
+      "timestamp": "2026-09-12 06:06:47 UTC",
+      "caller_id": "Call #C921",
+      "risk_score": 18.1,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (81.9% Human Authenticity). Voice verified.",
+      "latency_ms": 103.12
+    },
+    {
+      "session_id": "SESS_DF9F2F19",
+      "timestamp": "2026-09-12 06:06:34 UTC",
+      "caller_id": "Call #2F19",
+      "risk_score": 86.5,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (86.5% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 100.85
+    },
+    {
+      "session_id": "SESS_BF2FB06E",
+      "timestamp": "2026-09-12 06:06:32 UTC",
+      "caller_id": "Call #B06E",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 124.3
+    },
+    {
+      "session_id": "SESS_7E25AD61",
+      "timestamp": "2026-09-12 06:06:30 UTC",
+      "caller_id": "Call #AD61",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (81.1% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 107.93
+    },
+    {
+      "session_id": "SESS_C1F8D837",
+      "timestamp": "2026-09-12 06:06:27 UTC",
+      "caller_id": "Call #D837",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 147.06
+    },
+    {
+      "session_id": "SESS_E2AB0FFF",
+      "timestamp": "2026-09-12 06:06:23 UTC",
+      "caller_id": "Call #0FFF",
+      "risk_score": 48.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (51.2% Human Authenticity). Voice verified.",
+      "latency_ms": 129.34
+    },
+    {
+      "session_id": "SESS_C346830E",
+      "timestamp": "2026-09-12 06:06:21 UTC",
+      "caller_id": "Call #830E",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 127.83
+    },
+    {
+      "session_id": "SESS_0C1CDB73",
+      "timestamp": "2026-09-12 06:06:02 UTC",
+      "caller_id": "Call #DB73",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (83.5% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 139.37
+    },
+    {
+      "session_id": "SESS_F447748B",
+      "timestamp": "2026-09-12 06:06:00 UTC",
+      "caller_id": "Call #748B",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 125.81
+    },
+    {
+      "session_id": "SESS_F1122474",
+      "timestamp": "2026-09-12 06:05:56 UTC",
+      "caller_id": "Call #2474",
+      "risk_score": 49.7,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (50.3% Human Authenticity). Voice verified.",
+      "latency_ms": 205.99
+    },
+    {
+      "session_id": "SESS_7936C1E3",
+      "timestamp": "2026-09-12 06:05:54 UTC",
+      "caller_id": "Call #C1E3",
+      "risk_score": 18.3,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (81.7% Human Authenticity). Voice verified.",
+      "latency_ms": 101.69
+    },
+    {
+      "session_id": "SESS_CFA27C8F",
+      "timestamp": "2026-09-12 06:05:30 UTC",
+      "caller_id": "Call #7C8F",
+      "risk_score": 85.9,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (85.9% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 198.77
+    },
+    {
+      "session_id": "SESS_255AAF84",
+      "timestamp": "2026-09-12 06:05:28 UTC",
+      "caller_id": "Call #AF84",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 124.39
+    },
+    {
+      "session_id": "SESS_D9CAA514",
+      "timestamp": "2026-09-12 06:05:26 UTC",
+      "caller_id": "Call #A514",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 136.25
+    },
+    {
+      "session_id": "SESS_F9D05326",
+      "timestamp": "2026-09-12 06:05:24 UTC",
+      "caller_id": "Call #5326",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 118.82
+    },
+    {
+      "session_id": "SESS_B5BF0584",
+      "timestamp": "2026-09-12 06:05:20 UTC",
+      "caller_id": "Call #0584",
+      "risk_score": 49.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (50.5% Human Authenticity). Voice verified.",
+      "latency_ms": 133.28
+    },
+    {
+      "session_id": "SESS_1BF99644",
+      "timestamp": "2026-09-12 06:05:17 UTC",
+      "caller_id": "Call #9644",
+      "risk_score": 51.0,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (51.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 105.58
+    },
+    {
+      "session_id": "SESS_AD671E38",
+      "timestamp": "2026-09-12 06:02:17 UTC",
+      "caller_id": "Call #1E38",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 105.31
+    },
+    {
+      "session_id": "SESS_9DB2F610",
+      "timestamp": "2026-09-12 06:02:15 UTC",
+      "caller_id": "Call #F610",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 124.91
+    },
+    {
+      "session_id": "SESS_018F186D",
+      "timestamp": "2026-09-12 06:02:13 UTC",
+      "caller_id": "Call #186D",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 245.21
+    },
+    {
+      "session_id": "SESS_377148A1",
+      "timestamp": "2026-09-12 06:02:10 UTC",
+      "caller_id": "Call #48A1",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 160.85
+    },
+    {
+      "session_id": "SESS_5413C17D",
+      "timestamp": "2026-09-12 06:02:06 UTC",
+      "caller_id": "Call #C17D",
+      "risk_score": 61.4,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (61.4% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 125.41
+    },
+    {
+      "session_id": "SESS_58ACB5F8",
+      "timestamp": "2026-09-12 06:02:04 UTC",
+      "caller_id": "Call #B5F8",
+      "risk_score": 36.2,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (63.8% Human Authenticity). Voice verified.",
+      "latency_ms": 143.09
+    },
+    {
+      "session_id": "SESS_C7CEF735",
+      "timestamp": "2026-09-12 06:01:26 UTC",
+      "caller_id": "Call #F735",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 134.5
+    },
+    {
+      "session_id": "SESS_8D09F7DC",
+      "timestamp": "2026-09-12 06:01:23 UTC",
+      "caller_id": "Call #F7DC",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 192.39
+    },
+    {
+      "session_id": "SESS_E4C06434",
+      "timestamp": "2026-09-12 06:01:21 UTC",
+      "caller_id": "Call #6434",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.4% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 105.98
+    },
+    {
+      "session_id": "SESS_E20E3228",
+      "timestamp": "2026-09-12 06:01:19 UTC",
+      "caller_id": "Call #3228",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 166.42
+    },
+    {
+      "session_id": "SESS_4DAD5098",
+      "timestamp": "2026-09-12 06:01:15 UTC",
+      "caller_id": "Call #5098",
+      "risk_score": 69.0,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (69.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 134.34
+    },
+    {
+      "session_id": "SESS_7FF8C44E",
+      "timestamp": "2026-09-12 06:01:13 UTC",
+      "caller_id": "Call #C44E",
+      "risk_score": 35.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (64.5% Human Authenticity). Voice verified.",
+      "latency_ms": 100.33
+    },
+    {
+      "session_id": "SESS_7B80E9C0",
+      "timestamp": "2026-09-12 06:00:15 UTC",
+      "caller_id": "Call #E9C0",
+      "risk_score": 39.0,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (61.0% Human Authenticity). Voice verified.",
+      "latency_ms": 154.2
+    },
+    {
+      "session_id": "SESS_B3C0680F",
+      "timestamp": "2026-09-12 06:00:13 UTC",
+      "caller_id": "Call #680F",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 124.28
+    },
+    {
+      "session_id": "SESS_0D25FB5A",
+      "timestamp": "2026-09-12 06:00:11 UTC",
+      "caller_id": "Call #FB5A",
+      "risk_score": 86.8,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (86.8% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 117.87
+    },
+    {
+      "session_id": "SESS_998358ED",
+      "timestamp": "2026-09-12 06:00:09 UTC",
+      "caller_id": "Call #58ED",
+      "risk_score": 93.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (93.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 150.73
+    },
+    {
+      "session_id": "SESS_5CF188F3",
+      "timestamp": "2026-09-12 06:00:05 UTC",
+      "caller_id": "Call #88F3",
+      "risk_score": 69.0,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (69.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 126.45
+    },
+    {
+      "session_id": "SESS_08ED85A6",
+      "timestamp": "2026-09-12 06:00:03 UTC",
+      "caller_id": "Call #85A6",
+      "risk_score": 34.1,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (65.9% Human Authenticity). Voice verified.",
+      "latency_ms": 104.97
+    },
+    {
+      "session_id": "SESS_BE4C5C35",
+      "timestamp": "2026-09-12 05:53:51 UTC",
+      "caller_id": "Call #5C35",
+      "risk_score": 18.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (81.5% Human Authenticity). Voice verified.",
+      "latency_ms": 123.65
+    },
+    {
+      "session_id": "SESS_5A96F3D8",
+      "timestamp": "2026-09-12 05:53:49 UTC",
+      "caller_id": "Call #F3D8",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 131.3
+    },
+    {
+      "session_id": "SESS_BE482A8E",
+      "timestamp": "2026-09-12 05:53:46 UTC",
+      "caller_id": "Call #2A8E",
+      "risk_score": 91.1,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (91.1% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 117.39
+    },
+    {
+      "session_id": "SESS_265BA33A",
+      "timestamp": "2026-09-12 05:53:44 UTC",
+      "caller_id": "Call #A33A",
+      "risk_score": 95.9,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (95.9% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 133.47
+    },
+    {
+      "session_id": "SESS_511A15E1",
+      "timestamp": "2026-09-12 05:53:40 UTC",
+      "caller_id": "Call #15E1",
+      "risk_score": 69.0,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (69.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 164.29
+    },
+    {
+      "session_id": "SESS_58A2C7CA",
+      "timestamp": "2026-09-12 05:53:38 UTC",
+      "caller_id": "Call #C7CA",
+      "risk_score": 30.1,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (69.9% Human Authenticity). Voice verified.",
+      "latency_ms": 117.15
+    },
+    {
+      "session_id": "SESS_7201032F",
+      "timestamp": "2026-09-12 05:52:42 UTC",
+      "caller_id": "Call #032F",
+      "risk_score": 58.6,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (58.6% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 135.6
+    },
+    {
+      "session_id": "SESS_A8828600",
+      "timestamp": "2026-09-12 05:52:39 UTC",
+      "caller_id": "Call #8600",
+      "risk_score": 97.6,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (97.6% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 150.54
+    },
+    {
+      "session_id": "SESS_08B6F7E8",
+      "timestamp": "2026-09-12 05:52:37 UTC",
+      "caller_id": "Call #F7E8",
+      "risk_score": 98.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (98.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 121.92
+    },
+    {
+      "session_id": "SESS_B4CBD6CE",
+      "timestamp": "2026-09-12 05:52:35 UTC",
+      "caller_id": "Call #D6CE",
+      "risk_score": 97.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (97.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 245.56
+    },
+    {
+      "session_id": "SESS_9D933B9E",
+      "timestamp": "2026-09-12 05:52:31 UTC",
+      "caller_id": "Call #3B9E",
+      "risk_score": 97.1,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (97.1% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 126.24
+    },
+    {
+      "session_id": "SESS_54533EB9",
+      "timestamp": "2026-09-12 05:52:29 UTC",
+      "caller_id": "Call #3EB9",
+      "risk_score": 93.4,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (93.4% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 100.29
+    },
+    {
+      "session_id": "SESS_B5F50615",
+      "timestamp": "2026-09-12 05:52:11 UTC",
+      "caller_id": "Call #0615",
+      "risk_score": 60.0,
+      "alert_level": "YELLOW",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (60.0% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 122.96
+    },
+    {
+      "session_id": "SESS_67C061AA",
+      "timestamp": "2026-09-12 05:50:39 UTC",
+      "caller_id": "Call #61AA",
+      "risk_score": 18.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (81.5% Human Authenticity). Voice verified.",
+      "latency_ms": 277.41
+    },
+    {
+      "session_id": "SESS_BE7E8A93",
+      "timestamp": "2026-09-12 05:48:05 UTC",
+      "caller_id": "Call #8A93",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 181.29
+    },
+    {
+      "session_id": "SESS_5BC7A258",
+      "timestamp": "2026-09-12 05:46:45 UTC",
+      "caller_id": "Call #A258",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 139.09
+    },
+    {
+      "session_id": "SESS_DEAA2401",
+      "timestamp": "2026-09-12 05:42:03 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 673.14
+    },
+    {
+      "session_id": "SESS_E7107373",
+      "timestamp": "2026-09-12 05:41:32 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 990.12
+    },
+    {
+      "session_id": "SESS_CB2F8D36",
+      "timestamp": "2026-09-12 05:37:40 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 674.72
+    },
+    {
+      "session_id": "SESS_7BAA71BD",
+      "timestamp": "2026-09-12 05:37:16 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 875.81
+    },
+    {
+      "session_id": "SESS_A124A479",
+      "timestamp": "2026-09-12 05:36:54 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 944.41
+    },
+    {
+      "session_id": "SESS_ADF319A0",
+      "timestamp": "2026-09-12 05:36:39 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 912.8
+    },
+    {
+      "session_id": "SESS_0F0FDC7B",
+      "timestamp": "2026-09-12 05:36:29 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1032.08
+    },
+    {
+      "session_id": "SESS_06854A61",
+      "timestamp": "2026-09-12 05:32:47 UTC",
+      "caller_id": "Call #4A61",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 135.59
+    },
+    {
+      "session_id": "SESS_E55BF258",
+      "timestamp": "2026-09-12 05:32:45 UTC",
+      "caller_id": "Call #F258",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (84.3% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 124.0
+    },
+    {
+      "session_id": "SESS_8523FBA6",
+      "timestamp": "2026-09-12 05:32:43 UTC",
+      "caller_id": "Call #FBA6",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 264.39
+    },
+    {
+      "session_id": "SESS_E10DC5BC",
+      "timestamp": "2026-09-12 05:32:39 UTC",
+      "caller_id": "Call #C5BC",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 171.05
+    },
+    {
+      "session_id": "SESS_AE47AE12",
+      "timestamp": "2026-09-12 05:32:36 UTC",
+      "caller_id": "Call #AE12",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 105.51
+    },
+    {
+      "session_id": "SESS_96C74B02",
+      "timestamp": "2026-09-12 05:01:46 UTC",
+      "caller_id": "Call #4B02",
+      "risk_score": 47.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (52.5% Human Authenticity). Voice verified.",
+      "latency_ms": 126.14
+    },
+    {
+      "session_id": "SESS_55404F78",
+      "timestamp": "2026-09-12 05:01:42 UTC",
+      "caller_id": "Call #4F78",
+      "risk_score": 85.0,
+      "alert_level": "RED",
+      "intent_type": "NEUTRAL",
+      "user_message": "\ud83d\udea8 FAKE AI VOICE CLONE DETECTED (80.2% AI Probability). Recommended: disconnect call.",
+      "latency_ms": 112.12
+    },
+    {
+      "session_id": "SESS_56F24DCB",
+      "timestamp": "2026-09-12 05:01:38 UTC",
+      "caller_id": "Call #4DCB",
+      "risk_score": 47.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (52.5% Human Authenticity). Voice verified.",
+      "latency_ms": 152.41
+    },
+    {
+      "session_id": "SESS_EF78081C",
+      "timestamp": "2026-09-12 05:01:36 UTC",
+      "caller_id": "Call #081C",
+      "risk_score": 47.5,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (52.5% Human Authenticity). Voice verified.",
+      "latency_ms": 108.97
+    },
+    {
+      "session_id": "SESS_66BEBE92",
+      "timestamp": "2026-09-12 04:55:43 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 832.33
+    },
+    {
+      "session_id": "SESS_D61EB9AA",
+      "timestamp": "2026-09-12 04:48:31 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 988.3
+    },
+    {
+      "session_id": "SESS_71BA895E",
+      "timestamp": "2026-09-12 04:48:20 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1030.98
+    },
+    {
+      "session_id": "SESS_CCE2AA3E",
+      "timestamp": "2026-09-12 04:48:19 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1027.72
+    },
+    {
+      "session_id": "SESS_2F4D801E",
+      "timestamp": "2026-09-12 04:48:18 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 927.84
+    },
+    {
+      "session_id": "SESS_337D881E",
+      "timestamp": "2026-09-12 04:48:17 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1002.88
+    },
+    {
+      "session_id": "SESS_B09F237F",
+      "timestamp": "2026-09-12 04:48:16 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1162.72
+    },
+    {
+      "session_id": "SESS_CA352220",
+      "timestamp": "2026-09-12 04:48:15 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1344.93
+    },
+    {
+      "session_id": "SESS_63808221",
+      "timestamp": "2026-09-12 04:48:14 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1105.86
+    },
+    {
+      "session_id": "SESS_E6947C5D",
+      "timestamp": "2026-09-12 04:48:13 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1119.4
+    },
+    {
+      "session_id": "SESS_F8B93AB8",
+      "timestamp": "2026-09-12 04:48:11 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 1111.81
+    },
+    {
+      "session_id": "SESS_67ACD4B2",
+      "timestamp": "2026-09-12 04:48:10 UTC",
+      "caller_id": "Live Mic Capture",
+      "risk_score": 16.8,
+      "alert_level": "GREEN",
+      "intent_type": "NEUTRAL",
+      "user_message": "\u2705 REAL HUMAN VOICE DETECTED (83.2% Human Authenticity). Voice verified.",
+      "latency_ms": 976.61
     }
   ]
 }

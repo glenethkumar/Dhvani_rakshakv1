@@ -31,7 +31,7 @@ class ExplainabilityEngine:
             key_factors.append({"feature": "OpenAI Voice Engine Signature", "impact": "HIGH", "value": f"{tts_sigs['OpenAI_Voice']*100:.0f}% Match"})
 
         if phase_var < 1.4:
-            reasons.append(f"SYNTHESIS ARTIFACT: Unnatural neural phase smoothness ({phase_var:.2f} vs human baseline > 2.0).")
+            reasons.append(f"VOICE CONVERSION / SYNTHESIS ARTIFACT: Unnatural neural vocoder phase alignment ({phase_var:.2f} vs human baseline > 2.0).")
             key_factors.append({"feature": "Phase Smoothness Variance", "impact": "HIGH", "value": f"{phase_var:.2f}"})
         elif phase_var >= 2.2 and risk_score < 40.0:
             reasons.append(f"REPLAY DEGRADATION OBSERVED: Acoustic room reflection / echo detected ({phase_var:.2f}), but speech production is verified human.")
