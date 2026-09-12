@@ -112,48 +112,59 @@ class CleanVoiceAnalyzer:
         # 3. Replay Degradation: General loss of clarity, echo, or room reverberation from speaker playback,
         #    where BOTH underlying speech rhythm and vocal timbre remain natural human acoustic signals (std_f0 >= 4.0, jitter >= 0.15%, phase_var >= 2.0).
 
-        is_tts_flat_pitch = (std_f0 < 3.5 or f0_range < 9.0 or jitter < 0.12)
+        is_tts_flat_pitch = (std_f0 < 3.0 or (f0_range < 7.0 and jitter < 0.10))
         is_voice_conversion_timbre = (
             phase_var < 1.6 or 
-            spec_feats.get("spectral_flatness", 0.0) > 0.33 or 
-            spec_feats.get("spectral_centroid", 0.0) > 1500.0 or 
             deepfake_prob >= 0.35 or 
             ac_res.get("acoustic_anomaly_score", 0.0) >= 0.25
         )
         
-        is_human_pitch_dynamics = (std_f0 >= 4.0 or f0_range >= 10.0) and (0.12 <= jitter <= 20.0)
+        is_human_pitch_dynamics = (std_f0 >= 4.0 and f0_range >= 10.0 and jitter >= 0.12)
         is_human_phase_resonance = (phase_var >= 1.8)
 
-        # Authenticity score calculation (0 to 100)
+        # Authenticity score calculation according to strict 3-tier risk system:
+        #   0-39   -> Human Voice     (GREEN / Safe)
+        #   40-69  -> Uncertain Voice (YELLOW / Recommend Verification)
+        #   70-100 -> AI Voice Clone  (RED / High Risk - Flagged)
         if is_tts_flat_pitch:
-            auth_score = max(5, int((1.0 - max(deepfake_prob, 0.85)) * 100.0))
+            auth_score = max(75, min(95, int(max(deepfake_prob, 0.85) * 100.0)))
             risk_level = "High"
+            label = "AI Voice Clone"
+            color = "RED"
             reasoning = f"TTS synthetic speech detected: Unnaturally flat pitch contour (std_f0={std_f0:.1f}Hz) & zero vocal cord micro-jitter ({jitter:.2f}%)."
         elif is_voice_conversion_timbre:
-            auth_score = max(10, int((1.0 - max(deepfake_prob, 0.75)) * 100.0))
+            auth_score = max(70, min(95, int(max(deepfake_prob, 0.75) * 100.0)))
             risk_level = "High"
+            label = "AI Voice Clone"
+            color = "RED"
             reasoning = f"Voice conversion (RVC/Voice-to-Voice) synthetic timbre detected: Formant envelope & vocoder phase alignment anomaly identified (phase_var={phase_var:.2f})."
         elif is_human_pitch_dynamics and is_human_phase_resonance:
-            auth_score = min(98, max(75, int((1.0 - deepfake_prob) * 100.0)))
+            auth_score = min(35, max(5, int(deepfake_prob * 100.0)))
             risk_level = "Low"
+            label = "Human Voice"
+            color = "GREEN"
             reasoning = f"Authentic human speech verified: Natural fundamental frequency pitch dynamics (std_f0={std_f0:.1f}Hz, jitter={jitter:.2f}%) and natural vocal tract formant resonance confirmed."
         else:
-            auth_score = 65
+            auth_score = 52
             risk_level = "Medium"
-            reasoning = f"Slight acoustic prosody irregularity detected (std_f0={std_f0:.1f}Hz, jitter={jitter:.2f}%)."
+            label = "Uncertain Voice"
+            color = "YELLOW"
+            reasoning = f"Ambiguous acoustic speech signals / elevated background noise detected (std_f0={std_f0:.1f}Hz, jitter={jitter:.2f}%)."
 
         parsed_json = {
             "status": "OK",
             "authenticity_score": auth_score,
+            "risk_score": auth_score,
             "risk_level": risk_level,
+            "label": label,
+            "color": color,
             "reasoning": reasoning,
-            # Extra fields for UI compatibility
-            "risk_score": round(100.0 - auth_score, 1),
-            "alert_level": "RED" if risk_level == "High" else ("YELLOW" if risk_level == "Medium" else "GREEN"),
-            "voice_label": "Synthetic (AI Clone)" if risk_level == "High" else "Organic (Human)",
-            "recommendation": "RECOMMEND_DISCONNECT" if risk_level == "High" else ("PROCEED_WITH_CAUTION" if risk_level == "Medium" else "ALLOW"),
-            "user_message": f"🚨 FAKE AI VOICE CLONE DETECTED ({100.0 - auth_score:.1f}% AI Probability). Recommended: disconnect call." if risk_level == "High"
-                           else f"✅ REAL HUMAN VOICE DETECTED ({auth_score}% Human Authenticity). Voice verified."
+            "alert_level": color,
+            "voice_label": label,
+            "recommendation": "RECOMMEND_DISCONNECT" if color == "RED" else ("PROCEED_WITH_CAUTION" if color == "YELLOW" else "ALLOW"),
+            "user_message": f"🚨 FAKE AI VOICE CLONE DETECTED (Score: {auth_score}/100). Recommended: disconnect call." if color == "RED"
+                           else (f"⚠️ UNCERTAIN VOICE (Score: {auth_score}/100). Secondary verification recommended." if color == "YELLOW"
+                           else f"✅ REAL HUMAN VOICE DETECTED (Score: {auth_score}/100). Voice verified.")
         }
 
         raw_response = json.dumps(parsed_json)

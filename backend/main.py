@@ -212,25 +212,27 @@ async def analyze_audio_call(
         }
 
     # Step B returned OK
-    auth_score = res.get("authenticity_score", 90)
+    auth_score = res.get("authenticity_score", 15)
     risk_level = res.get("risk_level", "Low")
+    label = res.get("label", "Human Voice" if auth_score < 40 else ("Uncertain Voice" if auth_score < 70 else "AI Voice Clone"))
+    color = res.get("color", "GREEN" if auth_score < 40 else ("YELLOW" if auth_score < 70 else "RED"))
     reasoning = res.get("reasoning", "")
-    risk_score = round(100.0 - auth_score, 1)
-    alert_level = "RED" if risk_level == "High" else ("YELLOW" if risk_level == "Medium" else "GREEN")
-    voice_label = "Synthetic (AI Clone)" if risk_level == "High" else "Organic (Human)"
 
     risk_assessment = {
-        "risk_score": risk_score,
+        "risk_score": auth_score,
         "authenticity_score": auth_score,
         "risk_level": risk_level,
-        "alert_level": alert_level,
-        "voice_type": "AI_VOICE_CLONE" if risk_level == "High" else "REAL_HUMAN_VOICE",
-        "voice_label": voice_label,
-        "recommendation": "RECOMMEND_DISCONNECT" if risk_level == "High" else ("PROCEED_WITH_CAUTION" if risk_level == "Medium" else "ALLOW"),
-        "user_message": f"🚨 FAKE AI VOICE CLONE DETECTED ({risk_score:.1f}% AI Probability). Recommended: disconnect call." if risk_level == "High"
-                       else f"✅ REAL HUMAN VOICE DETECTED ({auth_score}% Human Authenticity). Voice verified.",
+        "alert_level": color,
+        "label": label,
+        "color": color,
+        "voice_type": "AI_VOICE_CLONE" if color == "RED" else ("UNCERTAIN_VOICE" if color == "YELLOW" else "REAL_HUMAN_VOICE"),
+        "voice_label": label,
+        "recommendation": "RECOMMEND_DISCONNECT" if color == "RED" else ("PROCEED_WITH_CAUTION" if color == "YELLOW" else "ALLOW"),
+        "user_message": f"🚨 FAKE AI VOICE CLONE DETECTED (Score: {auth_score}/100). Recommended: disconnect call." if color == "RED"
+                       else (f"⚠️ UNCERTAIN VOICE (Score: {auth_score}/100). Secondary verification recommended." if color == "YELLOW"
+                       else f"✅ REAL HUMAN VOICE DETECTED (Score: {auth_score}/100). Voice verified."),
         "reasoning": reasoning,
-        "flagged_context_risk_factors": [reasoning] if risk_level == "High" else []
+        "flagged_context_risk_factors": [reasoning] if color == "RED" else []
     }
 
     # Record telemetry

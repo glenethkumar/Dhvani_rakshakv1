@@ -61,14 +61,17 @@ class RiskScoringEngine:
 
 
         final_anomaly = min(1.0, raw_ensemble * contextual_multiplier)
-        ai_probability = round(final_anomaly * 100.0, 1)
-        authenticity_score = round(max(0.0, 100.0 - ai_probability), 1)
+        auth_score = round(final_anomaly * 100.0, 1)
 
-        # Pure acoustic risk level classification: Low / Medium / High
+        # Pure acoustic risk level classification according to strict 3-tier system:
+        #   0-39   -> Human Voice       (GREEN / Safe)
+        #   40-69  -> Uncertain Voice   (YELLOW / Recommend Verification)
+        #   70-100 -> AI Voice Clone    (RED / High Risk - Flagged)
         red_flags: List[str] = []
-        if ai_probability >= self.red_threshold:
+        if auth_score >= 70.0:
             risk_level = "High"
             alert_level = "RED"
+            label = "AI Voice Clone"
             recommendation = "RECOMMEND_DISCONNECT"
             if neural_prob >= 0.5:
                 red_flags.append("High-frequency neural vocoder artifacts detected (>6.5kHz spectral cutoff)")
@@ -78,29 +81,33 @@ class RiskScoringEngine:
                 red_flags.append("Speaker voice embedding anomaly identified (distance >0.65)")
             if not red_flags:
                 red_flags.append("Synthetic voice spectral signature detected")
-            reasoning = f"High AI voice clone risk ({ai_probability}% AI Probability). Synthetic vocoder artifacts and pitch anomalies identified."
-            user_message = f"🚨 FAKE AI VOICE CLONE DETECTED ({ai_probability}% AI Probability). Recommended: disconnect call."
-        elif ai_probability >= self.yellow_threshold:
+            reasoning = f"High AI voice clone risk ({auth_score}/100 Score). Synthetic vocoder artifacts and pitch anomalies identified."
+            user_message = f"🚨 FAKE AI VOICE CLONE DETECTED (Score: {auth_score}/100). Recommended: disconnect call."
+        elif auth_score >= 40.0:
             risk_level = "Medium"
             alert_level = "YELLOW"
+            label = "Uncertain Voice"
             recommendation = "PROCEED_WITH_CAUTION"
-            red_flags.append("Elevated pitch prosody irregularity detected")
-            reasoning = f"Medium voice clone risk ({ai_probability}% AI Probability). Moderate acoustic anomaly detected."
-            user_message = f"⚠️ SUSPICIOUS VOICE CHARACTERISTICS ({ai_probability}% AI Probability). Proceed with caution."
+            red_flags.append("Elevated pitch prosody irregularity / ambiguous audio quality detected")
+            reasoning = f"Uncertain voice characteristics ({auth_score}/100 Score). Secondary verification recommended."
+            user_message = f"⚠️ UNCERTAIN VOICE (Score: {auth_score}/100). Secondary verification recommended."
         else:
             risk_level = "Low"
             alert_level = "GREEN"
+            label = "Human Voice"
             recommendation = "ALLOW"
-            reasoning = f"Authentic real human voice confirmed ({authenticity_score}% Authenticity). Natural vocal tract formants verified."
-            user_message = f"✅ REAL HUMAN VOICE DETECTED ({authenticity_score}% Human Authenticity). Voice verified."
+            reasoning = f"Authentic human voice confirmed ({auth_score}/100 Score). Natural vocal tract formants verified."
+            user_message = f"✅ REAL HUMAN VOICE DETECTED (Score: {auth_score}/100). Voice verified."
 
         return {
-            "authenticity_score": authenticity_score,
-            "risk_score": ai_probability,
-            "ai_probability": ai_probability,
-            "human_authenticity": authenticity_score,
+            "authenticity_score": auth_score,
+            "risk_score": auth_score,
+            "ai_probability": auth_score,
+            "human_authenticity": round(max(0.0, 100.0 - auth_score), 1),
             "risk_level": risk_level,
             "alert_level": alert_level,
+            "label": label,
+            "color": alert_level,
             "red_flags": red_flags,
             "reasoning": reasoning,
             "recommendation": recommendation,

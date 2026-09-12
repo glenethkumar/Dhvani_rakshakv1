@@ -203,11 +203,15 @@ export default function LiveMonitor() {
       const alertLevel = data.risk_assessment?.alert_level || (riskScore >= 70 ? 'RED' : riskScore >= 40 ? 'YELLOW' : 'GREEN');
       const isNoSpeech = alertLevel === 'NO_SPEECH_DETECTED' || alertLevel === 'NO_SPEECH' || data.risk_assessment?.is_speech_detected === false;
 
-      let voiceNaturalness = "Organic (Human)";
+      let voiceNaturalness = "Human Voice";
       if (isNoSpeech) {
-        voiceNaturalness = "No Spoken Voice";
-      } else if (riskScore >= 50 || alertLevel === 'RED' || alertLevel === 'YELLOW') {
-        voiceNaturalness = "Synthetic (AI Clone)";
+        voiceNaturalness = "No Speech Detected";
+      } else if (alertLevel === 'RED' || riskScore >= 70) {
+        voiceNaturalness = "AI Voice Clone";
+      } else if (alertLevel === 'YELLOW' || riskScore >= 40) {
+        voiceNaturalness = "Uncertain Voice";
+      } else {
+        voiceNaturalness = "Human Voice";
       }
 
       const pitchHz = data.prosody_analysis?.mean_f0_hz !== undefined
@@ -615,10 +619,10 @@ export default function LiveMonitor() {
           </div>
 
           <div style={{ padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '700', letterSpacing: '0.5px', border: '1px solid', textAlign: 'center' }} className={getAlertBadgeClass(activeCall.alertLevel)}>
-            {activeCall.alertLevel === 'RED' ? 'HIGH RISK — AI CLONE' :
-             activeCall.alertLevel === 'YELLOW' ? 'MEDIUM RISK — ANOMALY' :
-             (activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? 'NO VOICE DETECTED — PLEASE TRY AGAIN' :
-             'LOW RISK — AUTHENTIC HUMAN'}
+            {activeCall.alertLevel === 'RED' ? 'AI VOICE CLONE — HIGH RISK' :
+             activeCall.alertLevel === 'YELLOW' ? 'UNCERTAIN VOICE — RECOMMEND VERIFICATION' :
+             (activeCall.alertLevel === 'NO_SPEECH_DETECTED' || activeCall.alertLevel === 'NO_SPEECH') ? 'NO SPEECH DETECTED — PLEASE TRY AGAIN' :
+             'HUMAN VOICE — SAFE'}
           </div>
 
           {/* TTS Signature Progress Bars */}
