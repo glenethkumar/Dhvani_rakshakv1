@@ -92,11 +92,11 @@ function resolveBackendUrls() {
     return { api, ws };
   }
 
-  // 2. Production Vercel / Render deployment
+  // 2. Production Vercel deployment (Same Origin serverless endpoint)
   if (hostname.includes('vercel.app') || hostname.includes('onrender.com') || hostname.includes('github.io')) {
     return {
-      api: import.meta.env.VITE_API_URL || 'https://dhvani-rakshak-backend.onrender.com',
-      ws: import.meta.env.VITE_WS_URL || 'wss://dhvani-rakshak-backend.onrender.com'
+      api: import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : ''),
+      ws: import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' ? `wss://${hostname}` : '')
     };
   }
 
