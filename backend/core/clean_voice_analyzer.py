@@ -121,30 +121,39 @@ class CleanVoiceAnalyzer:
         is_human_pitch_dynamics = (std_f0 >= 4.0 and f0_range >= 10.0 and jitter >= 0.12)
         is_human_phase_resonance = (phase_var >= 1.8)
 
+        # Continuous feature anomaly factors (0.0 to 1.0)
+        phase_anomaly = float(np.clip((2.5 - phase_var) / 1.7, 0.0, 1.0))
+        pitch_flatness_anomaly = float(np.clip((12.0 - std_f0) / 11.0, 0.0, 1.0))
+        jitter_anomaly = float(np.clip((0.50 - jitter) / 0.48, 0.0, 1.0))
+
         # Authenticity score calculation according to strict 3-tier risk system:
         #   0-39   -> Human Voice     (GREEN / Safe)
         #   40-69  -> Uncertain Voice (YELLOW / Recommend Verification)
         #   70-100 -> AI Voice Clone  (RED / High Risk - Flagged)
         if is_tts_flat_pitch:
-            auth_score = max(75, min(95, int(max(deepfake_prob, 0.85) * 100.0)))
+            raw_factor = 0.40 * deepfake_prob + 0.35 * pitch_flatness_anomaly + 0.25 * jitter_anomaly
+            auth_score = int(np.clip(70 + raw_factor * 28, 70, 98))
             risk_level = "High"
             label = "AI Voice Clone"
             color = "RED"
             reasoning = f"TTS synthetic speech detected: Unnaturally flat pitch contour (std_f0={std_f0:.1f}Hz) & zero vocal cord micro-jitter ({jitter:.2f}%)."
         elif is_voice_conversion_timbre:
-            auth_score = max(70, min(95, int(max(deepfake_prob, 0.75) * 100.0)))
+            raw_factor = 0.40 * deepfake_prob + 0.35 * phase_anomaly + 0.25 * pitch_flatness_anomaly
+            auth_score = int(np.clip(70 + raw_factor * 28, 70, 98))
             risk_level = "High"
             label = "AI Voice Clone"
             color = "RED"
             reasoning = f"Voice conversion (RVC/Voice-to-Voice) synthetic timbre detected: Formant envelope & vocoder phase alignment anomaly identified (phase_var={phase_var:.2f})."
         elif is_human_pitch_dynamics and is_human_phase_resonance:
-            auth_score = min(35, max(5, int(deepfake_prob * 100.0)))
+            raw_factor = 0.40 * pitch_flatness_anomaly + 0.30 * phase_anomaly + 0.30 * jitter_anomaly
+            auth_score = int(np.clip(5 + raw_factor * 33, 5, 38))
             risk_level = "Low"
             label = "Human Voice"
             color = "GREEN"
             reasoning = f"Authentic human speech verified: Natural fundamental frequency pitch dynamics (std_f0={std_f0:.1f}Hz, jitter={jitter:.2f}%) and natural vocal tract formant resonance confirmed."
         else:
-            auth_score = 52
+            raw_factor = 0.40 * deepfake_prob + 0.30 * pitch_flatness_anomaly + 0.30 * phase_anomaly
+            auth_score = int(np.clip(40 + raw_factor * 28, 40, 68))
             risk_level = "Medium"
             label = "Uncertain Voice"
             color = "YELLOW"
