@@ -171,6 +171,7 @@ class ProsodyAnalyzer:
             "mean_f0_hz": round(mean_f0, 1),
             "std_f0_hz": round(std_f0, 1),
             "f0_range_hz": round(f0_range, 1),
+            "voiced_frame_count": len(voiced_f0),
             "jitter_percent": jitter,
             "shimmer_db": shimmer,
             "rhythm_stats": rhythm_stats

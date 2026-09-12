@@ -112,7 +112,12 @@ class CleanVoiceAnalyzer:
         # 3. Replay Degradation: General loss of clarity, echo, or room reverberation from speaker playback,
         #    where BOTH underlying speech rhythm and vocal timbre remain natural human acoustic signals (std_f0 >= 4.0, jitter >= 0.15%, phase_var >= 2.0).
 
-        is_tts_flat_pitch = (std_f0 < 3.0 or (f0_range < 7.0 and jitter < 0.10))
+        voiced_count = pr_res.get("voiced_frame_count", 0)
+        is_tts_flat_pitch = (
+            voiced_count >= 8 and
+            phase_var < 2.0 and
+            (std_f0 < 3.0 or (f0_range < 7.0 and jitter < 0.10))
+        )
         is_voice_conversion_timbre = (
             (phase_var < 1.6 and (deepfake_prob >= 0.35 or ac_res.get("acoustic_anomaly_score", 0.0) >= 0.25)) or
             deepfake_prob >= 0.70
