@@ -250,8 +250,8 @@ async def analyze_audio_call(
     call_store.record_call(session_id, caller_id, risk_assessment, latency_ms, amount)
 
     mitigation_workflow = None
-    if alert_level in ["RED", "YELLOW"]:
-        mitigation_workflow = alerts.trigger_mitigation_workflow(session_id, alert_level, caller_metadata)
+    if color in ["RED", "YELLOW"]:
+        mitigation_workflow = alerts.trigger_mitigation_workflow(session_id, color, caller_metadata)
 
     return {
         "status": "OK",
@@ -262,7 +262,7 @@ async def analyze_audio_call(
         "latency_ms": latency_ms,
         "risk_assessment": risk_assessment,
         "acoustic_analysis": {
-            "acoustic_anomaly_score": round(risk_score / 100.0, 2),
+            "acoustic_anomaly_score": round(auth_score / 100.0, 2),
             "spectral_features": {"phase_smoothness_variance": 1.35 if risk_level == "High" else 3.12},
             "tts_signatures": {"ElevenLabs": 0.90 if risk_level == "High" else 0.05, "OpenAI_Voice": 0.85 if risk_level == "High" else 0.04}
         },

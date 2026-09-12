@@ -114,9 +114,8 @@ class CleanVoiceAnalyzer:
 
         is_tts_flat_pitch = (std_f0 < 3.0 or (f0_range < 7.0 and jitter < 0.10))
         is_voice_conversion_timbre = (
-            phase_var < 1.6 or 
-            deepfake_prob >= 0.35 or 
-            ac_res.get("acoustic_anomaly_score", 0.0) >= 0.25
+            (phase_var < 1.6 and (deepfake_prob >= 0.35 or ac_res.get("acoustic_anomaly_score", 0.0) >= 0.25)) or
+            deepfake_prob >= 0.70
         )
         
         is_human_pitch_dynamics = (std_f0 >= 4.0 and f0_range >= 10.0 and jitter >= 0.12)
