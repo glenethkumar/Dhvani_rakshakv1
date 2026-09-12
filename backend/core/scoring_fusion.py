@@ -17,14 +17,24 @@ class ScoringFusionEngine:
     def evaluate_call(
         self,
         wavlm_score: float,
-        transaction_amount: float = 0.0
+        transaction_amount: float = 0.0,
+        prosody_score: float = 0.0,
+        speaker_anomaly_score: float = 0.0
     ) -> Dict[str, Any]:
         """
-        Calculates voice authenticity using pure acoustic biometrics.
+        Calculates voice authenticity using fused acoustic, prosodic, and biometric scores.
         Outputs binary classification: AI Voice Clone vs Real Human Voice.
         """
-        # Calculate raw acoustic score
-        raw_score = min(100.0, max(0.0, wavlm_score * self.wavlm_w))
+        # Multi-feature fusion (Acoustic 50%, Prosody 30%, Speaker 20%)
+        ensemble_score = 0.50 * wavlm_score + 0.30 * (prosody_score * 100.0) + 0.20 * (speaker_anomaly_score * 100.0)
+        
+        # High acoustic or prosody anomaly boosts overall risk
+        if wavlm_score >= 65.0 or prosody_score >= 0.70:
+            raw_score = max(wavlm_score, ensemble_score)
+        else:
+            raw_score = ensemble_score
+
+        raw_score = min(100.0, max(0.0, raw_score * self.wavlm_w))
         
         # High value transaction risk booster
         if transaction_amount >= 1000000.0:  # > ₹10 Lakhs
@@ -38,8 +48,15 @@ class ScoringFusionEngine:
         reasons: List[str] = []
 
         if is_ai_voice:
-            reasons.append(f"AI-generated synthetic vocoder artifacts detected (AI Confidence: {final_risk:.1f}%)")
-            reasons.append("Unnatural phase continuity & pitch micro-jitter anomaly identified")
+            if wavlm_score >= 50.0:
+                reasons.append(f"AI-generated synthetic vocoder artifacts detected (AI Confidence: {wavlm_score:.1f}%)")
+            if prosody_score >= 0.50:
+                reasons.append("Unnatural flat pitch contour & prosodic micro-jitter deficiency identified")
+            if speaker_anomaly_score >= 0.50:
+                reasons.append("Speaker embedding identity mismatch detected")
+            if not reasons:
+                reasons.append(f"Synthetic voice anomaly detected (Risk Score: {final_risk:.1f}%)")
+
             voice_type = "AI_VOICE_CLONE"
             voice_label = "Synthetic (AI Clone)"
             alert_level = "RED" if final_risk >= 70.0 else "YELLOW"
@@ -57,7 +74,6 @@ class ScoringFusionEngine:
             recommended_action = "ALLOW_CALL"
             action_taken = "CALL_ALLOWED"
             user_message = f"✅ REAL HUMAN VOICE DETECTED ({human_authenticity:.1f}% Human Authenticity). Voice verified."
-
 
         # Cap score for RED alert
         if alert_level == "RED":
@@ -77,7 +93,9 @@ class ScoringFusionEngine:
             "is_ai_voice_detected": is_ai_voice,
             "flagged_reasons": reasons,
             "breakdown": {
-                "wavlm_acoustic_contribution": final_risk,
+                "wavlm_acoustic_contribution": round(wavlm_score * 0.50, 1),
+                "prosody_contribution": round(prosody_score * 30.0, 1),
+                "speaker_contribution": round(speaker_anomaly_score * 20.0, 1),
                 "wavlm_score_raw": wavlm_score
             }
         }

@@ -168,7 +168,7 @@ async def analyze_audio_call(
     bytes_data = await file.read()
     import hashlib
     audio_md5 = hashlib.md5(bytes_data).hexdigest()
-    print(f"\n[REQUEST RECEIVED] SessionID: {session_id} | File: {file.filename} | Bytes: {len(bytes_data)} | MD5: {audio_md5}")
+    print(f"\n[START ANALYZE] Request ID: {session_id} | Audio Byte Size: {len(bytes_data)} bytes | File: {file.filename}", flush=True)
 
     audio, sr = ingestion.load_wav_bytes(bytes_data)
     audio = ingestion.preprocess(audio, sr)
@@ -176,8 +176,10 @@ async def analyze_audio_call(
     # Step 1: Explicit Speech Presence Check BEFORE authenticity scoring step
     # "Does this audio contain clearly audible spoken human language (not music, not silence, not ambient noise)?"
     is_speech_present, speech_reason = ingestion.is_spoken_human_speech(audio, sr)
+    print(f"[SPEECH PRESENCE CHECK] Request ID: {session_id} | IsSpeechPresent: {is_speech_present} | Output: {speech_reason}", flush=True)
+
     if not is_speech_present:
-        print(f"[REQUEST RESULT] SessionID: {session_id} | Status: NO_SPEECH_DETECTED | Reason: {speech_reason}")
+        print(f"[FINAL RESULT RETURNED] Request ID: {session_id} | Result: RiskScore=0.0, AlertLevel=NO_SPEECH_DETECTED, VoiceLabel='No Spoken Voice Detected', Message='{speech_reason}'", flush=True)
         return {
             "session_id": session_id,
             "latency_ms": round((time.time() - start_time) * 1000.0, 2),
@@ -260,7 +262,12 @@ async def analyze_audio_call(
 
     amount = float(transaction_context.get("amount_inr", 0.0))
 
-    fusion_res = fusion_engine.evaluate_call(wavlm_score, amount)
+    fusion_res = fusion_engine.evaluate_call(
+        wavlm_score=wavlm_score,
+        transaction_amount=amount,
+        prosody_score=pr_res.get("calibrated_prosody_score", pr_res.get("prosody_anomaly_score", 0.0)),
+        speaker_anomaly_score=sp_res.get("speaker_anomaly_score", 0.0)
+    )
 
 
     risk_results = risk_engine.calculate_risk(ac_res, pr_res, sp_res)
@@ -298,6 +305,9 @@ async def analyze_audio_call(
 
     # 7. Explainable AI Rationale
     xai_explanation = xai.generate_explanation(ac_res, pr_res, sp_res, risk_results)
+
+    safe_msg = str(risk_results['user_message']).encode('ascii', 'ignore').decode('ascii')
+    print(f"[FINAL RESULT RETURNED] Request ID: {session_id} | Result: RiskScore={risk_results['risk_score']}, AlertLevel={risk_results['alert_level']}, VoiceLabel='{risk_results['voice_label']}', UserMessage='{safe_msg}'", flush=True)
 
     return {
         "session_id": session_id,
@@ -462,7 +472,11 @@ async def websocket_live_audio_stream(websocket: WebSocket):
 
             # Score Fusion & EMA Risk Smoothing
             wavlm_score = float(ac_res.get("neural_deepfake_probability", 0.10) * 100.0)
-            fusion_res = fusion_engine.evaluate_call(wavlm_score)
+            fusion_res = fusion_engine.evaluate_call(
+                wavlm_score=wavlm_score,
+                prosody_score=pr_res.get("calibrated_prosody_score", pr_res.get("prosody_anomaly_score", 0.0)),
+                speaker_anomaly_score=sp_res.get("speaker_anomaly_score", 0.0)
+            )
             raw_risk = fusion_res["risk_score"]
 
             prev_risk = ws_session_ema_scores.get(session_id, raw_risk)

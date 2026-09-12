@@ -232,14 +232,26 @@ class DeepFakeDetector:
             jitter_pct = float(np.mean(f0_diffs) / (np.mean(f0_estimates) + 1e-8) * 100.0)
             f0_rng = float(np.max(f0_estimates) - np.min(f0_estimates))
 
-            if std_f0 < 3.5 or f0_rng < 9.0:
+            # Segment-wise check (100 frames = 1 second) to detect spliced synthetic sections
+            segment_flatness_found = False
+            seg_len = 100
+            for s in range(0, max(1, len(f0_estimates) - seg_len + 1), 50):
+                seg_f0 = f0_estimates[s : s + seg_len]
+                if len(seg_f0) > 5:
+                    seg_std = float(np.std(seg_f0))
+                    seg_rng = float(np.max(seg_f0) - np.min(seg_f0))
+                    if seg_std < 3.5 or seg_rng < 9.0:
+                        segment_flatness_found = True
+                        break
+
+            if std_f0 < 3.5 or f0_rng < 9.0 or segment_flatness_found:
                 spoof_evidence += 0.45
                 has_synthesis_pitch_artifact = True
             elif jitter_pct < 0.10:
                 spoof_evidence += 0.30
                 has_synthesis_pitch_artifact = True
 
-            if std_f0 >= 4.0 and f0_rng >= 10.0 and jitter_pct >= 0.10:
+            if std_f0 >= 4.0 and f0_rng >= 10.0 and jitter_pct >= 0.10 and not segment_flatness_found:
                 is_human_pitch_dynamics = True
 
         # Replay Degradation Exemption Rule:

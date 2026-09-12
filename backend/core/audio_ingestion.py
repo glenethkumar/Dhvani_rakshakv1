@@ -85,8 +85,8 @@ class AudioIngestionPipeline:
 
     def is_spoken_human_speech(self, audio: np.ndarray, sample_rate: int = 16000) -> tuple[bool, str]:
         """
-        Explicit first check: Does this audio contain clearly audible spoken human language
-        (not music, not silence, not ambient noise)?
+        Explicit first check: Does this audio contain audible speech signal
+        (not silence, not pure constant tones, not static noise)?
         
         Returns (is_speech_present, status_reason).
         """
@@ -95,7 +95,7 @@ class AudioIngestionPipeline:
 
         max_amp = float(np.max(np.abs(audio)))
         rms_energy = float(np.sqrt(np.mean(audio ** 2)))
-        if max_amp < 0.015 or rms_energy < 0.002:
+        if max_amp < 0.01 or rms_energy < 0.001:
             return False, "SILENCE_OR_LOW_ENERGY"
 
         # Frame-based feature analysis (25ms frame, 10ms hop)
@@ -103,33 +103,24 @@ class AudioIngestionPipeline:
         hop_len = int(sample_rate * 0.010)
         num_frames = (len(audio) - frame_len) // hop_len + 1
 
-        if num_frames < 10:
+        if num_frames < 5:
             return False, "AUDIO_TOO_SHORT"
 
         frames = np.array([audio[i * hop_len : i * hop_len + frame_len] for i in range(num_frames)])
 
-        # 1. Zero Crossing Rate (ZCR) per frame
-        # Spoken human speech features alternating voiced vowels (low ZCR < 0.08)
-        # and unvoiced consonants ('s', 'sh', 'f', 't', 'k', 'p') with high ZCR (> 0.12).
-        zcr = np.mean(np.abs(np.diff(np.sign(frames), axis=1)) > 0, axis=1)
-        std_zcr = float(np.std(zcr))
-        high_zcr_ratio = float(np.mean(zcr > 0.12))  # Ratio of unvoiced consonant frames
-
-        # 2. Frame energy distribution & Pause Ratio
-        # Spoken speech contains natural inter-syllable / inter-word pauses.
-        # Music and background noise tracks have continuous sound with low pause ratio.
+        # Frame energy variation check
         frame_energies = np.mean(frames ** 2, axis=1)
         max_frame_energy = np.max(frame_energies) + 1e-10
-        pause_ratio = float(np.mean(frame_energies < (0.12 * max_frame_energy)))
+        energy_std = np.std(frame_energies) / max_frame_energy
 
-        # Speech presence decision rules:
-        # A spoken speech clip MUST exhibit unvoiced consonant ZCR transitions (high_zcr_ratio >= 0.025 or std_zcr >= 0.035)
-        # AND have speech pause dynamics or phonemic energy fluctuations.
-        if high_zcr_ratio < 0.025 and std_zcr < 0.035:
-            return False, "MUSIC_OR_NON_SPEECH (No spoken unvoiced phoneme transitions detected)"
+        # Zero-crossing rate check
+        zcr = np.mean(np.abs(np.diff(np.sign(frames), axis=1)) > 0, axis=1)
+        std_zcr = float(np.std(zcr))
+        mean_zcr = float(np.mean(zcr))
 
-        if pause_ratio < 0.03 and high_zcr_ratio < 0.04:
-            return False, "MUSIC_OR_CONTINUOUS_SONG (Continuous musical audio without speech pauses detected)"
+        # Filter out pure unmodulated sine waves or static DC offset
+        if std_zcr < 0.0001 and energy_std < 0.001:
+            return False, "PURE_TONE_OR_STATIC_DC"
 
         return True, "SPOKEN_HUMAN_SPEECH_PRESENT"
 
