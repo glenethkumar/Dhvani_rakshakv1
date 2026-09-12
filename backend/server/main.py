@@ -13,8 +13,10 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, F
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Add current directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Add parent backend directory to sys.path so core, models, datasets, and server modules resolve cleanly
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 from core.audio_ingestion import AudioIngestionPipeline
 from core.acoustic_analyzer import AcousticAnalyzer
@@ -24,10 +26,10 @@ from core.multilingual_engine import MultilingualEngine
 from core.risk_scorer import RiskScoringEngine
 from core.context_enricher import ContextEnricher
 from core.privacy_compliance import PrivacyComplianceManager
-from core.alert_service import AlertService
+from server.alert_service import AlertService
 from core.explainability_engine import ExplainabilityEngine
 from core.behavioral_biometrics import BehavioralBiometricsEngine
-from core.call_store import CallStoreManager
+from server.call_store import CallStoreManager
 from core.keyword_scanner import KeywordScanner
 from core.scoring_fusion import ScoringFusionEngine
 from core.clean_voice_analyzer import CleanVoiceAnalyzer

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './styles/App.css';
 import { Menu, X, Waves, PhoneCall, Cpu, Eye, ShieldCheck, Sliders, FileText, Zap, ChevronRight, Search, Shield, HelpCircle } from 'lucide-react';
 import LiveMonitor from './components/LiveMonitor';
 import CallSimulator from './components/CallSimulator';

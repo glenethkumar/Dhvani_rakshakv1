@@ -8,7 +8,7 @@ import json
 import time
 from typing import Dict, List, Any
 
-STORAGE_FILE = os.path.join(os.path.dirname(__file__), "..", "data", "call_history.json")
+STORAGE_FILE = os.path.join(os.path.dirname(__file__), "..", "datasets", "call_history.json")
 
 class CallStoreManager:
     def __init__(self):
