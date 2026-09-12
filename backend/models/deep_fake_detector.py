@@ -207,7 +207,7 @@ class DeepFakeDetector:
         if max_discontinuity > 1.3:
             spoof_evidence += min(0.40, (max_discontinuity - 1.3) * 0.30)
 
-        # Feature E: Unnatural pitch contour regularity (robotic pitch flat contour std_f0 < 3.5 Hz or f0_range < 9.0 Hz)
+        # Feature E: Pitch contour regularity (robotic pitch flat contour std_f0 < 3.5 Hz or f0_range < 9.0 Hz)
         # and missing natural breathing / micro-jitter (jitter < 0.12%)
         f0_estimates = []
         hop = int(self.sample_rate * 0.010)
@@ -233,22 +233,20 @@ class DeepFakeDetector:
             f0_rng = float(np.max(f0_estimates) - np.min(f0_estimates))
 
             if std_f0 < 3.5 or f0_rng < 9.0:
-                spoof_evidence += 0.50
+                spoof_evidence += 0.45
                 has_synthesis_pitch_artifact = True
-            if jitter_pct < 0.12:
-                spoof_evidence += 0.40
+            elif jitter_pct < 0.10:
+                spoof_evidence += 0.30
                 has_synthesis_pitch_artifact = True
 
-            if std_f0 >= 4.0 and f0_rng >= 10.0 and jitter_pct >= 0.12:
+            if std_f0 >= 4.0 and f0_rng >= 10.0 and jitter_pct >= 0.10:
                 is_human_pitch_dynamics = True
 
         # Replay Degradation Exemption Rule:
         # Subtract spoof evidence ONLY if BOTH speech prosody AND vocal timbre are verified genuine human (no TTS or VC artifacts)!
         has_spectral_timbre_artifact = (phase_var < 1.4 or high_freq_energy > 0.12 or raw_lfcc_std < 0.20 or max_discontinuity > 1.3)
-        if phase_var >= 2.2 and is_human_pitch_dynamics and not (has_synthesis_pitch_artifact or has_spectral_timbre_artifact):
-            spoof_evidence = max(0.0, spoof_evidence - 0.35)
-        if phase_var >= 2.2 and is_human_pitch_dynamics and not (has_synthesis_pitch_artifact or has_spectral_timbre_artifact):
-            spoof_evidence = max(0.0, spoof_evidence - 0.35)
+        if phase_var >= 2.0 and is_human_pitch_dynamics and not (has_synthesis_pitch_artifact or has_spectral_timbre_artifact):
+            spoof_evidence = max(0.0, spoof_evidence - 0.30)
 
         # 5. Continuous Smooth Sigmoid Calibration
         # Maps clean human acoustic evidence (spoof_evidence=0.0 -> ~7.5% risk) up to heavy synthetic artifacts (spoof_evidence >= 0.60 -> >=80% risk)
