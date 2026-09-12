@@ -166,6 +166,10 @@ async def analyze_audio_call(
     session_id = f"SESS_{uuid.uuid4().hex[:8].upper()}"
 
     bytes_data = await file.read()
+    import hashlib
+    audio_md5 = hashlib.md5(bytes_data).hexdigest()
+    print(f"\n[REQUEST RECEIVED] SessionID: {session_id} | File: {file.filename} | Bytes: {len(bytes_data)} | MD5: {audio_md5}")
+
     audio, sr = ingestion.load_wav_bytes(bytes_data)
     audio = ingestion.preprocess(audio, sr)
 
@@ -173,6 +177,7 @@ async def analyze_audio_call(
     # "Does this audio contain clearly audible spoken human language (not music, not silence, not ambient noise)?"
     is_speech_present, speech_reason = ingestion.is_spoken_human_speech(audio, sr)
     if not is_speech_present:
+        print(f"[REQUEST RESULT] SessionID: {session_id} | Status: NO_SPEECH_DETECTED | Reason: {speech_reason}")
         return {
             "session_id": session_id,
             "latency_ms": round((time.time() - start_time) * 1000.0, 2),
@@ -272,6 +277,8 @@ async def analyze_audio_call(
     risk_results["flagged_context_risk_factors"] = fusion_res["flagged_reasons"]
     risk_results["fusion_breakdown"] = fusion_res["breakdown"]
 
+
+    print(f"[MODEL EVALUATION RESULT] SessionID: {session_id} | RawDeepfakeProb: {deepfake_prob:.4f} | WavLMScore: {wavlm_score:.1f} | RiskScore: {risk_results['risk_score']} | AuthScore: {risk_results['authenticity_score']}% | Label: {risk_results['voice_label']}")
 
     # Processing Latency Benchmark
     latency_ms = round((time.time() - start_time) * 1000.0, 2)

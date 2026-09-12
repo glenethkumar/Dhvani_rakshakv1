@@ -103,6 +103,7 @@ class DeepFakeDetector:
         vocoder_fingerprints = self._classify_vocoder_fingerprints(audio, lfcc_tensor, deepfake_prob)
 
         elapsed_ms = round((time.time() - t0) * 1000.0, 2)
+        print(f"  [AI MODEL FORWARD PASS] Samples: {len(audio)} | LFCC Shape: {lfcc_tensor.shape} | DeepfakeProb: {deepfake_prob:.4f} | Engine: {'ONNX' if self.session else 'Vectorized AASIST'}")
         
         return {
             "is_deepfake": bool(deepfake_prob >= 0.55),
@@ -249,12 +250,9 @@ class DeepFakeDetector:
         if phase_var >= 2.2 and is_human_pitch_dynamics and not (has_synthesis_pitch_artifact or has_spectral_timbre_artifact):
             spoof_evidence = max(0.0, spoof_evidence - 0.35)
 
-        # 5. Calibrated AASIST Logit Projection
-        # Clean human speech (spoof_evidence <= 0.10) maps to <20% risk (GREEN).
-        # Synthetic AI vocoders (spoof_evidence >= 0.35) map to >75% risk (RED).
-        logit_spoof = spoof_evidence * 4.0 - 0.80
-        logit_bona = 0.80 - spoof_evidence * 2.0
-        deepfake_prob = 1.0 / (1.0 + np.exp(-(logit_spoof - logit_bona)))
+        # 5. Continuous Smooth Sigmoid Calibration
+        # Maps clean human acoustic evidence (spoof_evidence=0.0 -> ~7.5% risk) up to heavy synthetic artifacts (spoof_evidence >= 0.60 -> >=80% risk)
+        deepfake_prob = 1.0 / (1.0 + np.exp(-(spoof_evidence * 7.5 - 2.5)))
         return float(np.clip(deepfake_prob, 0.05, 0.98))
 
 
