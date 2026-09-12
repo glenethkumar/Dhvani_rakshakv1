@@ -7,7 +7,6 @@ import VoiceEnrollment from './components/VoiceEnrollment';
 import PolicyConfig from './components/PolicyConfig';
 import ComplianceAudit from './components/ComplianceAudit';
 import ExplainabilityDashboard from './components/ExplainabilityDashboard';
-import HowItWorks from './components/HowItWorks';
 import ConsentBanner from './components/ConsentBanner';
 
 export default function App() {
@@ -21,8 +20,7 @@ export default function App() {
       items: [
         { id: 'monitor', label: 'Live Monitor', icon: Waves, simpleDesc: 'Real-time live microphone stream AI voice detection scanner.' },
         { id: 'simulator', label: 'Call Simulator', icon: PhoneCall, simpleDesc: 'Simulates real vs AI-cloned voice calls.' },
-        { id: 'xai', label: 'Explainable AI', icon: Eye, simpleDesc: 'Forensic acoustic analysis showing reasons why a voice was flagged.' },
-        { id: 'howitworks', label: 'How It Works', icon: HelpCircle, simpleDesc: 'Interactive processing pipeline diagram.' }
+        { id: 'xai', label: 'Explainable AI', icon: Eye, simpleDesc: 'Forensic acoustic analysis showing reasons why a voice was flagged.' }
       ]
     },
     {
@@ -258,7 +256,6 @@ export default function App() {
         {activeTab === 'monitor' && <LiveMonitor />}
         {activeTab === 'simulator' && <CallSimulator />}
         {activeTab === 'xai' && <ExplainabilityDashboard />}
-        {activeTab === 'howitworks' && <HowItWorks />}
         {activeTab === 'dashboard' && <ExecutiveDashboard />}
         {activeTab === 'enrollment' && <VoiceEnrollment />}
         {activeTab === 'policy' && <PolicyConfig />}
