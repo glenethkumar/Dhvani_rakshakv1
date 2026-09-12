@@ -96,8 +96,9 @@ export default function App() {
               <h1 style={{ fontSize: '16px', fontWeight: '800', letterSpacing: '-0.5px', background: 'linear-gradient(90deg, #FFF 0%, #9CA3AF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
                 DHVANI RAKSHAK
               </h1>
-              <div style={{ fontSize: '9px', color: '#06B6D4', fontWeight: '700', letterSpacing: '0.5px' }}>
-                AI VOICE CLONE DEFENSE
+              <div style={{ fontSize: '9px', color: '#06B6D4', fontWeight: '700', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>AI VOICE CLONE DEFENSE</span>
+                <span style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10B981', color: '#10B981', padding: '1px 5px', borderRadius: '4px', fontSize: '8px' }}>v2.4 VOICE CONVERSION ACTIVE</span>
               </div>
             </div>
           </div>
