@@ -75,6 +75,9 @@ export function resampleAudio(audioBuffer, sourceSampleRate, targetSampleRate = 
  * API Base URL helper supporting mobile device IP, Render production URL, or local fallback
  */
 function resolveBackendUrls() {
+  let api = '';
+  let ws = '';
+
   if (typeof window === 'undefined') {
     return {
       api: 'http://localhost:8000',
@@ -83,39 +86,37 @@ function resolveBackendUrls() {
   }
 
   const hostname = window.location.hostname;
-  const protocol = window.location.protocol;
 
   // 1. Explicit environment variables
   if (import.meta.env.VITE_API_URL) {
-    const api = import.meta.env.VITE_API_URL;
-    const ws = api.replace(/^http/, 'ws');
-    return { api, ws };
+    api = import.meta.env.VITE_API_URL;
+    ws = import.meta.env.VITE_WS_URL || api.replace(/^http/, 'ws');
   }
-
-  // 2. Production Vercel deployment (Same Origin serverless endpoint)
-  if (hostname.includes('vercel.app') || hostname.includes('onrender.com') || hostname.includes('github.io')) {
-    return {
-      api: import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : ''),
-      ws: import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' ? `wss://${hostname}` : '')
-    };
+  // 2. Production Vercel deployment pointing to Render backend
+  else if (hostname.includes('vercel.app') || hostname.includes('onrender.com') || hostname.includes('github.io')) {
+    api = 'https://dhvani-rakshakv1.onrender.com';
+    ws = 'wss://dhvani-rakshakv1.onrender.com';
   }
-
   // 3. Local Wi-Fi Network access from mobile devices (e.g. 192.168.x.x)
-  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-    return {
-      api: `http://${hostname}:8000`,
-      ws: `ws://${hostname}:8000`
-    };
+  else if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    api = `http://${hostname}:8000`;
+    ws = `ws://${hostname}:8000`;
+  }
+  // 4. Default Localhost Development
+  else {
+    api = 'http://localhost:8000';
+    ws = 'ws://localhost:8000';
   }
 
-  // 4. Default Localhost Development
-  return {
-    api: 'http://localhost:8000',
-    ws: 'ws://localhost:8000'
-  };
+  // Sanitize: strip trailing slashes to prevent double slashes like //analyze
+  api = api.replace(/\/+$/, '');
+  ws = ws.replace(/\/+$/, '');
+
+  return { api, ws };
 }
 
 const resolvedUrls = resolveBackendUrls();
 export const API_BASE_URL = resolvedUrls.api;
 export const WS_BASE_URL = resolvedUrls.ws;
+
 
