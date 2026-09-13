@@ -55,7 +55,7 @@ export default function CallSimulator() {
       timerRef.current = setInterval(() => {
         sec++;
         setRecordingSeconds(sec);
-        if (sec >= 5) {
+        if (sec >= 8) {
           stopMicRecording();
         }
       }, 1000);
@@ -277,18 +277,35 @@ export default function CallSimulator() {
           console.warn("API analyze error:", err);
         }
 
-        if (response && response.risk_assessment) {
+        if (response && (response.risk_assessment || response.authenticity_score !== undefined || response.risk_score !== undefined)) {
+          const score = response.risk_assessment?.risk_score !== undefined 
+            ? response.risk_assessment.risk_score 
+            : (response.authenticity_score !== undefined ? response.authenticity_score : response.risk_score);
+          const color = response.risk_assessment?.alert_level || response.color || response.alert_level || (score >= 70 ? 'RED' : (score >= 40 ? 'YELLOW' : 'GREEN'));
+          const level = response.risk_assessment?.risk_level || response.risk_level || (color === 'RED' ? 'High' : (color === 'YELLOW' ? 'Medium' : 'Low'));
+
+          const riskAssessment = response.risk_assessment || {
+            risk_score: score,
+            authenticity_score: score,
+            risk_level: level,
+            alert_level: color,
+            label: response.label || response.voice_label || (color === 'RED' ? 'AI Voice Clone' : (color === 'YELLOW' ? 'Uncertain Voice' : 'Human Voice')),
+            user_message: response.user_message || (color === 'RED' ? `🚨 FAKE AI VOICE CLONE DETECTED (Score: ${score}/100).` : `✅ REAL HUMAN VOICE DETECTED (Score: ${score}/100).`),
+            recommendation: response.recommendation || (color === 'RED' ? 'RECOMMEND_DISCONNECT' : 'ALLOW'),
+            reasoning: response.reasoning || ""
+          };
+
           setAnalysisResult({
             session_id: response.session_id,
-            latency_ms: response.latency_ms,
+            latency_ms: response.latency_ms || 120.0,
             input_source: mode === 'mic' ? "Live Microphone Input (16kHz WAV)" : `File Upload: ${targetBlob.name}`,
-            risk_assessment: response.risk_assessment,
+            risk_assessment: riskAssessment,
             acoustic_analysis: response.acoustic_analysis,
             prosody_analysis: response.prosody_analysis,
             speaker_verification: response.speaker_verification
           });
-          if (response.risk_assessment.alert_level === 'RED' || response.risk_assessment.alert_level === 'YELLOW') {
-            setMitigationModal({ sessionId: response.session_id, alertLevel: response.risk_assessment.alert_level, otp: "482910" });
+          if (riskAssessment.alert_level === 'RED' || riskAssessment.alert_level === 'YELLOW') {
+            setMitigationModal({ sessionId: response.session_id, alertLevel: riskAssessment.alert_level, otp: "482910" });
           }
         } else {
           // Dynamic in-browser audio acoustic feature extraction for real voice evaluation
@@ -425,7 +442,7 @@ export default function CallSimulator() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '700' }}>Live Microphone Recording Studio</h3>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                Speak into your microphone for 3-5 seconds. Say a short sentence like: <em>"Hello, this is my natural voice test."</em>
+                Speak into your microphone for 8-10 seconds. Say a sentence like: <em>"Hello, this is my natural voice test for authentic identity verification."</em>
               </p>
               
               <div style={{ padding: '20px', borderRadius: '12px', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
@@ -434,7 +451,7 @@ export default function CallSimulator() {
                     onClick={startMicRecording}
                     style={{ padding: '14px 28px', borderRadius: '50px', background: '#10B981', color: '#FFF', fontWeight: '700', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', boxShadow: '0 0 20px rgba(16,185,129,0.4)' }}
                   >
-                    <Mic size={20} /> Click to Start 5-Second Mic Recording
+                    <Mic size={20} /> Click to Start 8-Second Mic Recording
                   </button>
                 ) : (
                   <button

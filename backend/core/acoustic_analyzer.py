@@ -24,7 +24,7 @@ class AcousticAnalyzer:
         self.n_fft = n_fft
         self.mel_filterbank = self._create_mel_filterbank()
         # Initialize AASIST Deep Learning Neural Detector
-        self.neural_detector = DeepFakeDetector(sample_rate=sample_rate)
+        self.neural_detector = DeepFakeDetector(sample_rate=sample_rate, use_wav2vec2=True)
 
     def _hz_to_mel(self, hz):
         return 2595.0 * np.log10(1.0 + hz / 700.0)
@@ -150,11 +150,14 @@ class AcousticAnalyzer:
         mfcc_std = float(np.mean(np.std(mfcc, axis=0)))
         delta_std = float(np.mean(np.std(delta, axis=0)))
 
-        # Voice splicing jump detection
+        # Voice splicing jump detection (calculated across active speech frames to avoid flagging natural speech onset)
         energy_frames = np.array([np.sum(audio[i:i+256]**2) for i in range(0, max(1, len(audio)-256), 128)])
-        if len(energy_frames) > 2:
-            energy_diffs = np.abs(np.diff(energy_frames)) / (np.mean(energy_frames) + 1e-10)
-            max_discontinuity = float(np.max(energy_diffs))
+        max_e = np.max(energy_frames) if len(energy_frames) > 0 else 1.0
+        active_mask = energy_frames > (0.10 * max_e + 1e-8)
+        if np.sum(active_mask) > 2:
+            active_energies = energy_frames[active_mask]
+            energy_diffs = np.abs(np.diff(active_energies)) / (np.mean(active_energies) + 1e-10)
+            max_discontinuity = float(np.max(energy_diffs)) if len(energy_diffs) > 0 else 0.0
         else:
             max_discontinuity = 0.0
 
@@ -179,7 +182,10 @@ class AcousticAnalyzer:
             dsp_anomaly += (0.45 - mfcc_std) * 1.5
         if spec_feats["phase_smoothness_variance"] < 1.2:
             dsp_anomaly += 0.25
-        if spec_feats["high_freq_energy_ratio"] > 0.08:
+        # High frequency energy ratio (> 0.18) - neural vocoder artifact check
+        # Room ambient noise / USB mic hiss has high frequency energy BUT natural phase randomness (phase_smoothness_variance >= 1.8).
+        # A neural vocoder has high frequency energy AND unnaturally smooth phase (phase_smoothness_variance < 1.45).
+        if spec_feats["high_freq_energy_ratio"] > 0.18 and spec_feats["phase_smoothness_variance"] < 1.45:
             dsp_anomaly += 0.35
 
         dsp_anomaly = float(np.clip(dsp_anomaly, 0.05, 0.95))

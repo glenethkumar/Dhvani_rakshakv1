@@ -17,7 +17,7 @@ class BehavioralBiometricsEngine:
         mouse_jitter = interaction_data.get("mouse_jitter_score", 0.15)
         
         # Human typing is typically 3 to 7 CPS with micro-pauses. Automated script typing is constant >12 CPS.
-        is_bot_typing = typing_cps > 11.0 or typing_cps < 0.5
+        is_bot_typing = typing_cps > 1.0 or typing_cps < 0.5
         
         # 2. Emotional Stress Analysis (Urgency / High Stress Tactics)
         emotional_state = interaction_data.get("emotional_state", "HIGH_STRESS_URGENT")

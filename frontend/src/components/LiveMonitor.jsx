@@ -117,8 +117,8 @@ export default function LiveMonitor() {
       const startTime = Date.now();
       timerIntervalRef.current = setInterval(() => {
         const elapsed = (Date.now() - startTime) / 1000;
-        if (elapsed >= 5.0) {
-          setRecordedDuration(5.0);
+        if (elapsed >= 8.0) {
+          setRecordedDuration(8.0);
           isStoppingRef.current = true;
           if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
 
@@ -126,7 +126,7 @@ export default function LiveMonitor() {
           const chunksToProcess = [...pcmChunksRef.current];
           stopLiveStream();
 
-          // Send captured 5s clip immediately for analysis
+          // Send captured 8s clip immediately for analysis
           sendAudioForAnalysis(chunksToProcess);
         } else {
           setRecordedDuration(elapsed);
@@ -140,13 +140,13 @@ export default function LiveMonitor() {
     }
   };
 
-  // Send captured 5.0s audio clip to backend /api/analyze endpoint
+  // Send captured 8.0s audio clip to backend /api/analyze endpoint
   const sendAudioForAnalysis = async (chunks) => {
     setIsAnalyzing(true);
     setStreamError(null);
     try {
       if (!chunks || chunks.length === 0) {
-        setStreamError("No audio captured during 5-second window.");
+        setStreamError("No audio captured during 8-second window.");
         setIsAnalyzing(false);
         return;
       }
@@ -160,18 +160,18 @@ export default function LiveMonitor() {
         offset += chunk.length;
       }
 
-      // Cap to exactly 5.0s of audio (5.0 * 16000 = 80000 samples)
-      const maxSamples = 16000 * 5;
+      // Cap to exactly 8.0s of audio (8.0 * 16000 = 128000 samples)
+      const maxSamples = 16000 * 8;
       const finalSamples = merged.length > maxSamples ? merged.subarray(0, maxSamples) : merged;
 
       const wavBlob = encodeWAV(finalSamples, 16000);
 
       const formData = new FormData();
-      formData.append("file", wavBlob, "live_mic_5s.wav");
+      formData.append("file", wavBlob, "live_mic_8s.wav");
       formData.append("language", "en-IN");
       formData.append("caller_metadata_json", JSON.stringify({ caller_id: "Live Mic Capture" }));
 
-      console.log("Sending captured 5s live mic audio blob to backend /api/analyze...", wavBlob);
+      console.log("Sending captured 8s live mic audio blob to backend /api/analyze...", wavBlob);
 
       let response = null;
       let targetUrl = `${API_BASE_URL}/analyze`;
@@ -186,7 +186,7 @@ export default function LiveMonitor() {
       }
 
       if (!response || !response.ok) {
-        response = await fetch("http://localhost:8000/analyze", {
+        response = await fetch(`${API_BASE_URL}/analyze`, {
           method: "POST",
           body: formData
         });
@@ -199,9 +199,22 @@ export default function LiveMonitor() {
       const data = await response.json();
       console.log("Backend /api/analyze response received:", data);
 
-      const riskScore = data.risk_assessment?.risk_score !== undefined ? data.risk_assessment.risk_score : 28.4;
-      const alertLevel = data.risk_assessment?.alert_level || (riskScore >= 70 ? 'RED' : riskScore >= 40 ? 'YELLOW' : 'GREEN');
-      const isNoSpeech = alertLevel === 'NO_SPEECH_DETECTED' || alertLevel === 'NO_SPEECH' || data.risk_assessment?.is_speech_detected === false;
+      let rawScore = 28.4;
+      if (data.risk_assessment?.risk_score !== undefined) {
+        rawScore = data.risk_assessment.risk_score;
+      } else if (data.authenticity_score !== undefined) {
+        rawScore = data.authenticity_score;
+      } else if (data.risk_score !== undefined) {
+        rawScore = data.risk_score;
+      }
+
+      const riskScore = Math.round(Number(rawScore));
+      let alertLevel = data.alert_level || data.color || data.risk_assessment?.alert_level || data.risk_assessment?.color;
+      if (!alertLevel) {
+        alertLevel = riskScore >= 70 ? 'RED' : (riskScore >= 40 ? 'YELLOW' : 'GREEN');
+      }
+
+      const isNoSpeech = data.status === 'NO_SPEECH' || alertLevel === 'NO_SPEECH_DETECTED' || alertLevel === 'NO_SPEECH' || data.risk_assessment?.is_speech_detected === false;
 
       let voiceNaturalness = "Human Voice";
       if (isNoSpeech) {
@@ -426,12 +439,12 @@ export default function LiveMonitor() {
                   background: 'rgba(6, 182, 212, 0.15)', color: '#06B6D4',
                   border: '1px solid rgba(6, 182, 212, 0.3)', fontWeight: '700'
                 }}>
-                  🎙️ Voice Window: {recordedDuration.toFixed(1)}s / 5.0s
+                  🎙️ Voice Window: {recordedDuration.toFixed(1)}s / 8.0s
                 </span>
               )}
             </div>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-              <strong>What it does:</strong> Captures 5.0 seconds of microphone voice input, sends it to the AI defense engine, and checks authenticity in real time.
+              <strong>What it does:</strong> Captures 8.0 seconds of microphone voice input, sends it to the AI defense engine, and checks authenticity in real time.
             </p>
           </div>
         </div>

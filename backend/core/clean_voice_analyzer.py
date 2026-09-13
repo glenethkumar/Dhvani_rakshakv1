@@ -28,7 +28,7 @@ class CleanVoiceAnalyzer:
         self.ingestion = AudioIngestionPipeline(target_sample_rate=16000)
         self.acoustic = AcousticAnalyzer(sample_rate=16000)
         self.prosody = ProsodyAnalyzer(sample_rate=16000)
-        self.detector = DeepFakeDetector(sample_rate=16000)
+        self.detector = DeepFakeDetector(sample_rate=16000, use_wav2vec2=True)
 
     def check_speech_presence(self, audio: np.ndarray, sample_rate: int = 16000) -> tuple[bool, str]:
         """
@@ -115,16 +115,17 @@ class CleanVoiceAnalyzer:
         voiced_count = pr_res.get("voiced_frame_count", 0)
         is_tts_flat_pitch = (
             voiced_count >= 8 and
-            phase_var < 2.0 and
-            (std_f0 < 3.0 or (f0_range < 7.0 and jitter < 0.10))
+            (std_f0 < 3.2 or (f0_range < 8.0 and jitter < 0.25)) and
+            (deepfake_prob >= 0.35 or phase_var < 1.8 or jitter < 0.15)
         )
         is_voice_conversion_timbre = (
-            (phase_var < 1.6 and (deepfake_prob >= 0.35 or ac_res.get("acoustic_anomaly_score", 0.0) >= 0.25)) or
-            deepfake_prob >= 0.70
+            deepfake_prob >= 0.55 or
+            (deepfake_prob >= 0.40 and phase_var < 1.6) or
+            (phase_var < 1.3 and ac_res.get("acoustic_anomaly_score", 0.0) >= 0.45)
         )
         
-        is_human_pitch_dynamics = (std_f0 >= 4.0 and f0_range >= 10.0 and jitter >= 0.12)
-        is_human_phase_resonance = (phase_var >= 1.8)
+        is_human_pitch_dynamics = (std_f0 >= 4.0 and f0_range >= 8.0 and jitter >= 0.10)
+        is_human_phase_resonance = (phase_var >= 1.5 and deepfake_prob < 0.40)
 
         # Continuous feature anomaly factors (0.0 to 1.0)
         phase_anomaly = float(np.clip((2.5 - phase_var) / 1.7, 0.0, 1.0))
@@ -177,7 +178,9 @@ class CleanVoiceAnalyzer:
             "recommendation": "RECOMMEND_DISCONNECT" if color == "RED" else ("PROCEED_WITH_CAUTION" if color == "YELLOW" else "ALLOW"),
             "user_message": f"🚨 FAKE AI VOICE CLONE DETECTED (Score: {auth_score}/100). Recommended: disconnect call." if color == "RED"
                            else (f"⚠️ UNCERTAIN VOICE (Score: {auth_score}/100). Secondary verification recommended." if color == "YELLOW"
-                           else f"✅ REAL HUMAN VOICE DETECTED (Score: {auth_score}/100). Voice verified.")
+                           else f"✅ REAL HUMAN VOICE DETECTED (Score: {auth_score}/100). Voice verified."),
+            "acoustic_analysis": ac_res,
+            "prosody_analysis": pr_res
         }
 
         raw_response = json.dumps(parsed_json)

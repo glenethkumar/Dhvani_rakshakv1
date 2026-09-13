@@ -22,4 +22,5 @@ build/
 *.onnx
 backend/models/*.zip
 .DS_Store
+scratch/
 

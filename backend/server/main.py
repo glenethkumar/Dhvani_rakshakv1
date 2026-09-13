@@ -18,6 +18,21 @@ backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
+# Load environment variables from project root .env file if present
+root_dir = os.path.dirname(backend_dir)
+env_path = os.path.join(root_dir, ".env")
+if os.path.exists(env_path):
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    if k.strip() and v.strip():
+                        os.environ[k.strip()] = v.strip()
+    except Exception as e:
+        print(f"[Main Server] Info: .env file notice: {e}")
+
 from core.audio_ingestion import AudioIngestionPipeline
 from core.acoustic_analyzer import AcousticAnalyzer
 from core.prosody_analyzer import ProsodyAnalyzer
@@ -263,12 +278,16 @@ async def analyze_audio_call(
         "session_id": session_id,
         "latency_ms": latency_ms,
         "risk_assessment": risk_assessment,
-        "acoustic_analysis": {
+        "acoustic_analysis": res.get("acoustic_analysis", {
             "acoustic_anomaly_score": round(auth_score / 100.0, 2),
             "spectral_features": {"phase_smoothness_variance": 1.35 if risk_level == "High" else 3.12},
             "tts_signatures": {"ElevenLabs": 0.90 if risk_level == "High" else 0.05, "OpenAI_Voice": 0.85 if risk_level == "High" else 0.04}
-        },
-        "prosody_analysis": {"mean_f0_hz": 142.5, "jitter_percent": 0.04 if risk_level == "High" else 0.42, "std_f0_hz": 2.1 if risk_level == "High" else 22.4},
+        }),
+        "prosody_analysis": res.get("prosody_analysis", {
+            "mean_f0_hz": 142.5,
+            "jitter_percent": 0.04 if risk_level == "High" else 0.42,
+            "std_f0_hz": 2.1 if risk_level == "High" else 22.4
+        }),
         "speaker_verification": {"speaker_similarity": 0.25 if risk_level == "High" else 0.94, "speaker_anomaly_score": 0.75 if risk_level == "High" else 0.06},
         "mitigation_workflow": mitigation_workflow
     }
