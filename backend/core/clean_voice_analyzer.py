@@ -42,7 +42,7 @@ class CleanVoiceAnalyzer:
         rms_energy = float(np.sqrt(np.mean(audio ** 2)))
 
         # Silence / Background room noise check
-        if max_amp < 0.015 or rms_energy < 0.002:
+        if max_amp < 0.025 or rms_energy < 0.004:
             return False, f"NO (Silence / low energy ambient noise: max_amp={max_amp:.4f}, rms={rms_energy:.4f})"
 
         duration = len(audio) / sample_rate
@@ -69,9 +69,13 @@ class CleanVoiceAnalyzer:
         if std_zcr < 0.0001 and energy_std < 0.001:
             return False, f"NO (Pure tone / static non-speech signal: zcr_std={std_zcr:.6f})"
 
+        # Check voiced frame presence
+        pr_check = self.prosody.analyze_prosody(audio)
+        voiced_count = pr_check.get("voiced_frame_count", 0)
+        if voiced_count < 3:
+            return False, f"NO (No active human speech voiced frames detected: voiced_count={voiced_count})"
+
         # Polyphonic music chord check (Song/music clip vs Speech harmonic series)
-        # Speech harmonics are integer multiples of F0 (constant difference between peaks).
-        # Polyphonic music chords have non-integer frequency intervals.
         fft_mag = np.abs(fft.rfft(audio[:min(len(audio), 8192)]))
         max_m = np.max(fft_mag) + 1e-10
         peaks = signal.find_peaks(fft_mag, height=0.18 * max_m, distance=12)[0]
@@ -105,27 +109,23 @@ class CleanVoiceAnalyzer:
         raw_lfcc_std = ac_res.get("mfcc_variance", 10.0)
         max_discontinuity = ac_res.get("splicing_discontinuity", 0.0)
 
-        # Production Characteristics Classification Logic:
-        # 1. TTS Synthesis Artifacts: Unnaturally flat pitch (std_f0 < 3.5Hz or f0_range < 9.0Hz), missing jitter (jitter < 0.12%), smooth phase.
-        # 2. Voice Conversion (RVC / Voice-to-Voice) Artifacts: Human speech pitch/rhythm variation coupled with synthetic vocal timbre
-        #    (metallic formant envelope, phase smoothness variance < 1.6, unnatural vocoder resonance).
-        # 3. Replay Degradation: General loss of clarity, echo, or room reverberation from speaker playback,
-        #    where BOTH underlying speech rhythm and vocal timbre remain natural human acoustic signals (std_f0 >= 4.0, jitter >= 0.15%, phase_var >= 2.0).
-
         voiced_count = pr_res.get("voiced_frame_count", 0)
         is_tts_flat_pitch = (
             voiced_count >= 8 and
-            (std_f0 < 3.2 or (f0_range < 8.0 and jitter < 0.25)) and
-            (deepfake_prob >= 0.35 or phase_var < 1.8 or jitter < 0.15)
+            (std_f0 < 2.5 or (f0_range < 7.0 and jitter < 0.18)) and
+            (deepfake_prob >= 0.40 or phase_var < 1.6 or jitter < 0.12)
         )
         is_voice_conversion_timbre = (
-            deepfake_prob >= 0.55 or
-            (deepfake_prob >= 0.40 and phase_var < 1.6) or
+            deepfake_prob >= 0.50 or
+            (deepfake_prob >= 0.38 and phase_var < 1.5) or
             (phase_var < 1.3 and ac_res.get("acoustic_anomaly_score", 0.0) >= 0.45)
         )
         
-        is_human_pitch_dynamics = (std_f0 >= 4.0 and f0_range >= 8.0 and jitter >= 0.10)
-        is_human_phase_resonance = (phase_var >= 1.5 and deepfake_prob < 0.40)
+        is_human_voice = (
+            not is_tts_flat_pitch and
+            not is_voice_conversion_timbre and
+            deepfake_prob < 0.40
+        )
 
         # Continuous feature anomaly factors (0.0 to 1.0)
         phase_anomaly = float(np.clip((2.5 - phase_var) / 1.7, 0.0, 1.0))
@@ -150,9 +150,9 @@ class CleanVoiceAnalyzer:
             label = "AI Voice Clone"
             color = "RED"
             reasoning = f"Voice conversion (RVC/Voice-to-Voice) synthetic timbre detected: Formant envelope & vocoder phase alignment anomaly identified (phase_var={phase_var:.2f})."
-        elif is_human_pitch_dynamics and is_human_phase_resonance:
+        elif is_human_voice:
             raw_factor = 0.40 * pitch_flatness_anomaly + 0.30 * phase_anomaly + 0.30 * jitter_anomaly
-            auth_score = int(np.clip(5 + raw_factor * 33, 5, 38))
+            auth_score = int(np.clip(5 + raw_factor * 30, 5, 38))
             risk_level = "Low"
             label = "Human Voice"
             color = "GREEN"
