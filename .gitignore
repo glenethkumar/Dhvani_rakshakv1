@@ -24,3 +24,6 @@ backend/models/*.zip
 .DS_Store
 scratch/
 
+
+.vercel
+.env*
